@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.nesterenko"
-version = "0.1-alpha"
+version = "0.2-alpha"
 
 repositories {
     mavenCentral()
