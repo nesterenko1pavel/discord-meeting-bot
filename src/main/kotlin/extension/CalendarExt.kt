@@ -3,6 +3,8 @@ package extension
 import latecomer.AvailableAllWorkingDays
 import latecomer.AvailableDays
 import latecomer.AvailableEveryWeekDays
+import latecomer.model.DeltaMeetingDate
+import latecomer.model.MeetingDate
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
@@ -18,25 +20,19 @@ fun getGregorianCalendar(): Calendar {
 }
 
 fun Calendar.setupForNearestMeetingDay(
-    meetingHour: Int,
-    meetingMinute: Int,
-    availableWeekDays: AvailableDays = AvailableAllWorkingDays
+    availableWeekDays: AvailableDays
 ): Calendar {
     val currentDayOfMonth = get(Calendar.DAY_OF_MONTH)
 
-    val daysDelta = when (availableWeekDays) {
-        AvailableAllWorkingDays -> getDaysDeltaOrZero(meetingHour, meetingMinute)
-        is AvailableEveryWeekDays -> getDaysDeltaOrZero(
-            meetingHour,
-            meetingMinute,
-            availableWeekDays.weekDays
-        )
+    val deltaWeekDay = when (availableWeekDays) {
+        is AvailableAllWorkingDays -> getDaysDeltaOrZero(availableWeekDays.hour, availableWeekDays.minute)
+        is AvailableEveryWeekDays -> getDaysDeltaOrZero(availableWeekDays.meetingDays)
     }
-    val monthDayOfNearestMeeting = currentDayOfMonth + daysDelta
+    val monthDayOfNearestMeeting = currentDayOfMonth + deltaWeekDay.delta
 
     set(Calendar.DAY_OF_MONTH, monthDayOfNearestMeeting)
-    set(Calendar.HOUR_OF_DAY, meetingHour)
-    set(Calendar.MINUTE, meetingMinute)
+    set(Calendar.HOUR_OF_DAY, deltaWeekDay.hour)
+    set(Calendar.MINUTE, deltaWeekDay.minute)
     set(Calendar.SECOND, 0)
     return this
 }
@@ -44,14 +40,19 @@ fun Calendar.setupForNearestMeetingDay(
 fun Calendar.getDaysDeltaOrZero(
     meetingHour: Int,
     meetingMinute: Int,
-): Int {
+): DeltaMeetingDate {
 
-    return when (get(Calendar.DAY_OF_WEEK)) {
+    val delta = when (get(Calendar.DAY_OF_WEEK)) {
         Calendar.FRIDAY -> ONE_DAY * 3
         Calendar.SATURDAY -> ONE_DAY * 2
         Calendar.SUNDAY -> ONE_DAY
         else -> getDayDeltaIfMeetingExpiredOrZero(meetingHour, meetingMinute)
     }
+    return DeltaMeetingDate(
+        hour = meetingHour,
+        minute = meetingMinute,
+        delta = delta
+    )
 }
 
 fun Calendar.getDayDeltaIfMeetingExpiredOrZero(
@@ -73,10 +74,8 @@ fun Calendar.isMeetingExpired(
 }
 
 fun Calendar.getDaysDeltaOrZero(
-    meetingHour: Int,
-    meetingMinute: Int,
-    availableWeekDays: List<Int>
-): Int {
+    availableMeetingDates: List<MeetingDate>
+): DeltaMeetingDate {
 
     val currentDayOfWeek = get(Calendar.DAY_OF_WEEK)
 
@@ -87,10 +86,10 @@ fun Calendar.getDaysDeltaOrZero(
     )
     val indexOfCurrentWeekDay = listDoubleWeek.indexOfFirst { it == currentDayOfWeek }
 
-    val deltas = availableWeekDays.map { availableElement ->
+    val deltaMeetingDates = availableMeetingDates.map { availableElement ->
 
         val predicate: (Int, Int) -> Boolean = { i, item ->
-            item == availableElement && i >= indexOfCurrentWeekDay
+            item == availableElement.weekDay && i >= indexOfCurrentWeekDay
         }
 
         var indexOfNextAvailableWeekDay = 0
@@ -99,14 +98,18 @@ fun Calendar.getDaysDeltaOrZero(
                 break
             indexOfNextAvailableWeekDay++
         }
-        indexOfNextAvailableWeekDay - indexOfCurrentWeekDay
+        DeltaMeetingDate(
+            hour = availableElement.hour,
+            minute = availableElement.minute,
+            delta = indexOfNextAvailableWeekDay - indexOfCurrentWeekDay
+        )
     }
 
-    val sortedDeltas = deltas.sorted()
-    println(sortedDeltas)
+    val sortedDeltas = deltaMeetingDates.sortedBy { it.delta }
+    val firstDelta = sortedDeltas.first()
     val finalDelta = if (
-        isMeetingExpired(meetingHour, meetingMinute) &&
-        availableWeekDays.contains(currentDayOfWeek)
+        isMeetingExpired(firstDelta.hour, firstDelta.minute) &&
+        availableMeetingDates.any { it.weekDay == currentDayOfWeek }
     ) {
         sortedDeltas.second()
     } else {

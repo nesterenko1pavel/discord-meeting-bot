@@ -1,4 +1,4 @@
-package latecomer.daily
+package latecomer.meeting.daily
 
 import latecomer.LatecomerTimerTask
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel

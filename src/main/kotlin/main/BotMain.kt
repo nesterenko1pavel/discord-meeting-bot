@@ -5,7 +5,8 @@ import extension.getFirstTextChannelByName
 import extension.getFirstVoiceChannelByName
 import extension.getProperty
 import jda.JDADefaultBuilder
-import latecomer.daily.DailyLatecomerTimerTaskScheduler
+import latecomer.meeting.daily.DailyLatecomerTimerTaskScheduler
+import latecomer.meeting.pbr.PbrLatecomerTimerTaskScheduler
 import java.io.File
 import java.util.Timer
 
@@ -26,6 +27,10 @@ fun main() {
     val timer = Timer()
 
     DailyLatecomerTimerTaskScheduler.schedule(
+        timer, bot.selfUser.id, verifiableVoiceChannel, reportingTextChannel
+    )
+
+    PbrLatecomerTimerTaskScheduler.schedule(
         timer, bot.selfUser.id, verifiableVoiceChannel, reportingTextChannel
     )
 }

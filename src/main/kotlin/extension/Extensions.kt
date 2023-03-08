@@ -31,7 +31,7 @@ fun List<Member>.saveMembersIdToFile(fileName: String) {
     }
 }
 
-fun List<Int>.second(): Int = this[1]
+fun <T> List<T>.second(): T = this[1]
 
 fun <T : Any> File.getProperty(propertyName: String): T {
     val prop = Properties()
