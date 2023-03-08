@@ -19,6 +19,8 @@ class JDADefaultBuilder {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
 
+                .addEventListeners(CommandsManager())
+
                 .build()
         }
     }

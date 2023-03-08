@@ -5,8 +5,8 @@ plugins {
     application
 }
 
-group = "com.nesterenko"
-version = "0.2-alpha"
+group = BotProjectConfigs.GROUP
+version = BotProjectConfigs.VERSION
 
 repositories {
     mavenCentral()
