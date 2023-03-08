@@ -2,34 +2,23 @@ package latecomer
 
 import config.FilesConfig
 import extension.saveMembersIdToFile
-import extension.setupForNearestMeetingDay
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
-import java.util.Calendar
-import java.util.Timer
 import java.util.TimerTask
 
-class LatecomerTimerTask(
-    private val timer: Timer,
-    private val calendar: Calendar,
+abstract class LatecomerTimerTask(
     private val botUserId: String,
     private val verifiableVoiceChannel: VoiceChannel,
     private val reportingTextChannel: TextChannel,
-    private val availableWeekDays: AvailableDays = AvailableAllWorkingDays,
-    private val meetingHour: Int,
-    private val meetingMinute: Int
 ) : TimerTask() {
 
     override fun run() {
         sendLatecomersReport()
-        calendar.setupForNearestMeetingDay(
-            meetingHour = meetingHour,
-            meetingMinute = meetingMinute,
-            availableWeekDays = availableWeekDays
-        )
-        timer.schedule(this, calendar.time)
+        scheduleNext()
     }
+
+    protected abstract fun scheduleNext()
 
     private fun sendLatecomersReport() {
         val latecomers = getLatecomers()

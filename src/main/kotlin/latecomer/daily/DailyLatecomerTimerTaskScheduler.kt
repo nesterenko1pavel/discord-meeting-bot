@@ -1,4 +1,4 @@
-package latecomer.creator
+package latecomer.daily
 
 import extension.getGregorianCalendar
 import extension.setupForNearestMeetingDay
@@ -20,14 +20,11 @@ object DailyLatecomerTimerTaskScheduler {
     ): LatecomerTimerTask {
         val calendar = getGregorianCalendar()
         calendar.setupForNearestMeetingDay(meetingHour = DAILY_HOUR, meetingMinute = DAILY_MINUTE)
-        val dailyLatecomerTimerTask = LatecomerTimerTask(
+        val dailyLatecomerTimerTask = DailyTimerTask(
             timer = timer,
-            calendar = calendar,
             botUserId = botUserId,
             verifiableVoiceChannel = verifiableVoiceChannel,
             reportingTextChannel = reportingTextChannel,
-            meetingHour = DAILY_HOUR,
-            meetingMinute = DAILY_MINUTE
         )
         timer.schedule(dailyLatecomerTimerTask, calendar.time)
         return dailyLatecomerTimerTask

@@ -5,7 +5,7 @@ import extension.getFirstTextChannelByName
 import extension.getFirstVoiceChannelByName
 import extension.getProperty
 import jda.JDADefaultBuilder
-import latecomer.creator.DailyLatecomerTimerTaskScheduler
+import latecomer.daily.DailyLatecomerTimerTaskScheduler
 import java.io.File
 import java.util.Timer
 
