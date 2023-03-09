@@ -4,6 +4,7 @@ import extension.getGregorianCalendar
 import extension.setupForNearestMeetingDay
 import latecomer.LatecomerTimerTask
 import latecomer.meeting.MeetingsConfig
+import logging.Logger
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import java.util.Timer
@@ -25,6 +26,7 @@ object PbrLatecomerTimerTaskScheduler {
             reportingTextChannel = reportingTextChannel,
         )
         timer.schedule(dailyLatecomerTimerTask, calendar.time)
+        Logger.logPbrScheduled(calendar)
         return dailyLatecomerTimerTask
     }
 }

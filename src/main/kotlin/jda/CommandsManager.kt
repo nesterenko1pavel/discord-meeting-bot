@@ -1,6 +1,7 @@
 package jda
 
 import config.FilesConfig
+import core.BotConfigs
 import jda.CommandsConfigs.MAIN_COMMAND
 import jda.CommandsConfigs.MAIN_COMMAND_DESCRIPTION
 import jda.CommandsConfigs.MAIN_SUBCOMMAND_INFO
@@ -42,7 +43,7 @@ class CommandsManager : ListenerAdapter() {
     }
 
     private fun onInfoCommand(event: SlashCommandInteractionEvent) {
-        event.reply("Hello meeeen. I'm Bot Pavel!")
+        event.reply("Hello meeeen. I'm Bot Pavel version ${BotConfigs.VERSION}")
             .queue()
     }
 
