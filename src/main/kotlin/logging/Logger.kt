@@ -1,9 +1,9 @@
 package logging
 
 import core.BotConfigs
+import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.Calendar
 
 private const val LOGS_FILE = "logs.txt"
@@ -11,7 +11,7 @@ private const val LOGS_FILE = "logs.txt"
 object Logger {
 
     private val logsFile = File(LOGS_FILE)
-    private val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss")
+    private val formatter = createSimpleDateFormat("dd-MM-yyyy HH:mm:ss")
 
     fun logBotStartup() {
         log("Startup ${BotConfigs.VERSION}")

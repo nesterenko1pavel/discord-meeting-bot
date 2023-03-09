@@ -5,6 +5,7 @@ import latecomer.AvailableDays
 import latecomer.AvailableEveryWeekDays
 import latecomer.model.DeltaMeetingDate
 import latecomer.model.MeetingDate
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
@@ -14,9 +15,14 @@ private const val ONE_DAY = 1
 
 fun getGregorianCalendar(): Calendar {
     val locale = Locale.forLanguageTag("ru-RU")
-    val calendar = GregorianCalendar.getInstance(locale)
-    calendar.timeZone = TimeZone.getTimeZone("Europe/Moscow")
-    return calendar
+    val timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    return GregorianCalendar.getInstance(timeZone, locale)
+}
+
+fun createSimpleDateFormat(pattern: String): SimpleDateFormat {
+    val format = SimpleDateFormat(pattern)
+    format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    return format
 }
 
 fun Calendar.setupForNearestMeetingDay(
