@@ -2,26 +2,34 @@ package extension
 
 import latecomer.AvailableAllWorkingDays
 import latecomer.AvailableDays
+import latecomer.AvailableEveryTwoWeekDay
 import latecomer.AvailableEveryWeekDays
 import latecomer.model.DeltaMeetingDate
 import latecomer.model.MeetingDate
+import latecomer.model.MonthDayDate
+import latecomer.model.SimpleMeetingDate
 import java.text.SimpleDateFormat
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
 
+private const val LANGUAGE_TAG = "ru-RU"
+private const val TIME_ZONE = "Europe/Moscow"
+
 private const val ONE_DAY = 1
+private const val COUNT_DAYS_IN_WEEK = 7
 
 fun getGregorianCalendar(): Calendar {
-    val locale = Locale.forLanguageTag("ru-RU")
-    val timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    val locale = Locale.forLanguageTag(LANGUAGE_TAG)
+    val timeZone = TimeZone.getTimeZone(TIME_ZONE)
     return GregorianCalendar.getInstance(timeZone, locale)
 }
 
 fun createSimpleDateFormat(pattern: String): SimpleDateFormat {
     val format = SimpleDateFormat(pattern)
-    format.timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    format.timeZone = TimeZone.getTimeZone(TIME_ZONE)
     return format
 }
 
@@ -31,8 +39,15 @@ fun Calendar.setupForNearestMeetingDay(
     val currentDayOfMonth = get(Calendar.DAY_OF_MONTH)
 
     val deltaWeekDay = when (availableWeekDays) {
-        is AvailableAllWorkingDays -> getDaysDeltaOrZero(availableWeekDays.hour, availableWeekDays.minute)
-        is AvailableEveryWeekDays -> getDaysDeltaOrZero(availableWeekDays.meetingDays)
+        is AvailableAllWorkingDays -> getDaysDeltaOrZero(
+            availableWeekDays.hour, availableWeekDays.minute
+        )
+        is AvailableEveryWeekDays -> getDaysDeltaOrZero(
+            availableWeekDays.meetingDays
+        )
+        is AvailableEveryTwoWeekDay -> getDaysDeltaOrZero(
+            availableWeekDays.meetingDate, availableWeekDays.startFrom, COUNT_DAYS_IN_WEEK * 2
+        )
     }
     val monthDayOfNearestMeeting = currentDayOfMonth + deltaWeekDay.delta
 
@@ -123,4 +138,39 @@ fun Calendar.getDaysDeltaOrZero(
     }
 
     return finalDelta
+}
+
+fun Calendar.getDaysDeltaOrZero(
+    meetingDay: SimpleMeetingDate,
+    startFrom: MonthDayDate,
+    period: Int
+): DeltaMeetingDate {
+    val startDate = getGregorianCalendar().apply {
+        set(Calendar.YEAR, startFrom.year)
+        set(Calendar.MONTH, startFrom.month)
+        set(Calendar.DAY_OF_MONTH, startFrom.monthDay)
+    }
+    val daysBetween = daysBetween(startDate, this)
+    val numberIntPeriods = daysBetween / period
+    val numberOfDayInPeriod = daysBetween - (period * numberIntPeriods)
+
+    val delta = if (numberOfDayInPeriod == 0) {
+        if (isMeetingExpired(meetingDay.hour, meetingDay.minute)) {
+            period
+        } else {
+            0
+        }
+    } else {
+        period - numberOfDayInPeriod
+    }
+
+    return DeltaMeetingDate(
+        hour = meetingDay.hour,
+        minute = meetingDay.minute,
+        delta = delta
+    )
+}
+
+private fun daysBetween(startCalendar: Calendar, endCalendar: Calendar): Int {
+    return ChronoUnit.DAYS.between(startCalendar.toInstant(), endCalendar.toInstant()).toInt()
 }

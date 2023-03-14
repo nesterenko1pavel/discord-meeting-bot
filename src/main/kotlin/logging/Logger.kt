@@ -29,6 +29,10 @@ object Logger {
         logMeetingScheduled(meetingCalendar, "pbr")
     }
 
+    fun logRetroScheduled(meetingCalendar: Calendar) {
+        logMeetingScheduled(meetingCalendar, "retro")
+    }
+
     private fun logMeetingScheduled(meetingCalendar: Calendar, meetingName: String) {
         val meetingTime = formatter.format(meetingCalendar.time)
         val message = "Next $meetingName meeting scheduled for $meetingTime"

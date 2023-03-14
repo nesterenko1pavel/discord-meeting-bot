@@ -8,6 +8,7 @@ import extension.getProperty
 import jda.JDADefaultBuilder
 import latecomer.meeting.daily.DailyLatecomerTimerTaskScheduler
 import latecomer.meeting.pbr.PbrLatecomerTimerTaskScheduler
+import latecomer.meeting.retro.RetroLatecomerTimerTaskScheduler
 import logging.Logger
 import java.io.File
 import java.util.Timer
@@ -36,6 +37,10 @@ fun main() {
     )
 
     PbrLatecomerTimerTaskScheduler.schedule(
+        timer, bot.selfUser.id, verifiableVoiceChannel, reportingTextChannel
+    )
+
+    RetroLatecomerTimerTaskScheduler.schedule(
         timer, bot.selfUser.id, verifiableVoiceChannel, reportingTextChannel
     )
 }
