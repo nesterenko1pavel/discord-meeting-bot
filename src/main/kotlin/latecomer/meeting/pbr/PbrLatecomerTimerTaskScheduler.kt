@@ -2,7 +2,7 @@ package latecomer.meeting.pbr
 
 import extension.getGregorianCalendar
 import extension.setupForNearestMeetingDay
-import latecomer.LatecomerTimerTask
+import latecomer.BaseTimerTask
 import latecomer.meeting.MeetingsConfig
 import logging.Logger
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -16,7 +16,7 @@ object PbrLatecomerTimerTaskScheduler {
         botUserId: String,
         verifiableVoiceChannel: VoiceChannel,
         reportingTextChannel: TextChannel,
-    ): LatecomerTimerTask {
+    ): BaseTimerTask {
         val calendar = getGregorianCalendar()
         calendar.setupForNearestMeetingDay(availableWeekDays = MeetingsConfig.Pbr.availableWeekDays)
         val dailyLatecomerTimerTask = PbrTimerTask(
