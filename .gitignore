@@ -43,3 +43,4 @@ hs_err_pid*
 # self
 local_database.txt
 project.properties
+logs.txt
