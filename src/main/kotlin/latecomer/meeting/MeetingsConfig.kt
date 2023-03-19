@@ -8,13 +8,13 @@ import latecomer.model.MonthDayDate
 import latecomer.model.SimpleMeetingDate
 import java.util.Calendar
 
-object MeetingsConfig {
+sealed interface MeetingsConfig {
 
-    object Daily {
+    object Daily: MeetingsConfig {
         val availableWeekDays = AvailableAllWorkingDays(hour = 11)
     }
 
-    object Pbr {
+    object Pbr: MeetingsConfig {
         val availableWeekDays = AvailableEveryWeekDays(
             meetingDays = listOf(
                 MeetingDate(weekDay = Calendar.MONDAY, hour = 16),
@@ -23,7 +23,7 @@ object MeetingsConfig {
         )
     }
 
-    object Retro {
+    object Retro: MeetingsConfig {
         val availableWeekDay = AvailableEveryTwoWeekDay(
             meetingDate = SimpleMeetingDate(hour = 14),
             startFrom = MonthDayDate(monthDay = 3, month = Calendar.MARCH, 2023)
