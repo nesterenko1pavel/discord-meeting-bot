@@ -2,12 +2,12 @@ package latecomer.meeting.daily
 
 import extension.getGregorianCalendar
 import extension.setupForNearestMeetingDay
-import latecomer.BaseTimerTask
 import latecomer.TaskManager
 import latecomer.meeting.MeetingsConfig
 import logging.Logger
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
+import java.util.Calendar
 import java.util.Timer
 
 object DailyLatecomerTimerTaskScheduler {
@@ -17,9 +17,12 @@ object DailyLatecomerTimerTaskScheduler {
         botUserId: String,
         verifiableVoiceChannel: VoiceChannel,
         reportingTextChannel: TextChannel,
+        initialCalendar: Calendar? = null
     ) {
-        val calendar = getGregorianCalendar()
-        calendar.setupForNearestMeetingDay(MeetingsConfig.Daily.availableWeekDays)
+        val calendar = initialCalendar
+            ?: getGregorianCalendar().apply {
+                setupForNearestMeetingDay(MeetingsConfig.Daily.availableWeekDays)
+            }
         val dailyLatecomerTimerTask = DailyTimerTask(
             timer = timer,
             botUserId = botUserId,

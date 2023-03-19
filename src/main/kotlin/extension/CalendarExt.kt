@@ -8,6 +8,7 @@ import latecomer.model.DeltaMeetingDate
 import latecomer.model.MeetingDate
 import latecomer.model.MonthDayDate
 import latecomer.model.SimpleMeetingDate
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
@@ -20,6 +21,31 @@ private const val TIME_ZONE = "Europe/Moscow"
 
 private const val ONE_DAY = 1
 private const val COUNT_DAYS_IN_WEEK = 7
+
+fun parseStringDate(
+    stringTime: String,
+    onSuccess: (Calendar) -> Unit,
+    onError: () -> Unit
+) {
+    val format = SimpleDateFormat("dd-MM-yyyy HH:mm")
+    val data = try {
+        format.parse(stringTime)
+    } catch (ignore: ParseException) {
+        null
+    }
+    val calendar = if (data != null) {
+        getGregorianCalendar().apply {
+            time = data
+        }
+    } else {
+        null
+    }
+    if (calendar != null) {
+        onSuccess(calendar)
+    } else {
+        onError()
+    }
+}
 
 fun getGregorianCalendar(): Calendar {
     val locale = Locale.forLanguageTag(LANGUAGE_TAG)

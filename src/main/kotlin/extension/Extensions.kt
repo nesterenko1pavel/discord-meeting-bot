@@ -1,5 +1,6 @@
 package extension
 
+import latecomer.meeting.MeetingsConfig
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -39,3 +40,5 @@ fun <T : Any> File.getProperty(propertyName: String): T {
     @Suppress("UNCHECKED_CAST")
     return prop[propertyName] as T
 }
+
+fun MeetingsConfig.getSimpleClassName(): String = this.javaClass.simpleName
