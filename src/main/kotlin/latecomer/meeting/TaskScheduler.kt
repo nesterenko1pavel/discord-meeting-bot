@@ -8,6 +8,7 @@ import extension.getSimpleClassName
 import latecomer.TaskManager
 import latecomer.meeting.daily.DailyLatecomerTimerTaskScheduler
 import latecomer.meeting.pbr.PbrLatecomerTimerTaskScheduler
+import latecomer.meeting.planning.PlanningLatecomerTimerTaskScheduler
 import latecomer.meeting.retro.RetroLatecomerTimerTaskScheduler
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -54,12 +55,19 @@ object TaskScheduler {
         )
     }
 
+    fun schedulePlanning(initialCalendar: Calendar? = null) {
+        PlanningLatecomerTimerTaskScheduler.schedule(
+            timer, botSelfUserId, verifiableVoiceChannel, reportingTextChannel, initialCalendar
+        )
+    }
+
     fun rescheduleMeeting(meetingName: String, initialCalendar: Calendar) {
         TaskManager.cancel(meetingName)
         when (meetingName) {
             MeetingsConfig.Daily.getSimpleClassName() -> scheduleDaily(initialCalendar)
             MeetingsConfig.Pbr.getSimpleClassName() -> schedulePbr(initialCalendar)
             MeetingsConfig.Retro.getSimpleClassName() -> scheduleRetro(initialCalendar)
+            MeetingsConfig.Planning.getSimpleClassName() -> schedulePlanning(initialCalendar)
         }
     }
 }

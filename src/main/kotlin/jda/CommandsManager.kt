@@ -133,7 +133,8 @@ class CommandsManager : ListenerAdapter() {
                             OptionData(OptionType.STRING, OPTION_MEETING_NAME, OPTION_MEETING_NAME_DESCRIPTION, true)
                                 .addChoice(MeetingsConfig.Daily.getSimpleClassName())
                                 .addChoice(MeetingsConfig.Pbr.getSimpleClassName())
-                                .addChoice(MeetingsConfig.Retro.getSimpleClassName()),
+                                .addChoice(MeetingsConfig.Retro.getSimpleClassName())
+                                .addChoice(MeetingsConfig.Planning.getSimpleClassName()),
                             OptionData(OptionType.STRING, OPTION_MEETING_DATE, OPTION_MEETING_DATE_DESCRIPTION, true)
                         )
                 )

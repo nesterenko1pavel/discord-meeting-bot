@@ -29,6 +29,10 @@ object Logger {
         logMeetingScheduled(meetingCalendar, "pbr")
     }
 
+    fun logPlanningScheduled(meetingCalendar: Calendar) {
+        logMeetingScheduled(meetingCalendar, "planning")
+    }
+
     fun logRetroScheduled(meetingCalendar: Calendar) {
         logMeetingScheduled(meetingCalendar, "retro")
     }

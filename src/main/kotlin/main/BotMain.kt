@@ -23,4 +23,5 @@ fun main() {
     TaskScheduler.scheduleDaily()
     TaskScheduler.schedulePbr()
     TaskScheduler.scheduleRetro()
+    TaskScheduler.schedulePlanning()
 }

@@ -29,4 +29,11 @@ sealed interface MeetingsConfig {
             startFrom = MonthDayDate(monthDay = 3, month = Calendar.MARCH, 2023)
         )
     }
+
+    object Planning : MeetingsConfig {
+        val availableWeekDay = AvailableEveryTwoWeekDay(
+            meetingDate = SimpleMeetingDate(hour = 13),
+            startFrom = MonthDayDate(monthDay = 6, month = Calendar.MARCH, 2023)
+        )
+    }
 }
