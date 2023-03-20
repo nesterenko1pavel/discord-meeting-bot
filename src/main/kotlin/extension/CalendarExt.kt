@@ -27,7 +27,7 @@ fun parseStringDate(
     onSuccess: (Calendar) -> Unit,
     onError: () -> Unit
 ) {
-    val format = SimpleDateFormat("dd-MM-yyyy HH:mm")
+    val format = createSimpleDateFormat("dd-MM-yyyy HH:mm")
     val data = try {
         format.parse(stringTime)
     } catch (ignore: ParseException) {
