@@ -22,12 +22,17 @@ private const val TIME_ZONE = "Europe/Moscow"
 private const val ONE_DAY = 1
 private const val COUNT_DAYS_IN_WEEK = 7
 
+object CalendarPattern {
+
+    const val FULL = "dd-MM-yyyy HH:mm"
+}
+
 fun parseStringDate(
     stringTime: String,
     onSuccess: (Calendar) -> Unit,
     onError: () -> Unit
 ) {
-    val format = createSimpleDateFormat("dd-MM-yyyy HH:mm")
+    val format = createSimpleDateFormat(CalendarPattern.FULL)
     val data = try {
         format.parse(stringTime)
     } catch (ignore: ParseException) {

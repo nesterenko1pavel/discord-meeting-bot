@@ -1,6 +1,8 @@
 package jda
 
 import core.BotConfigs
+import extension.CalendarPattern
+import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import extension.getSimpleClassName
 import extension.parseStringDate
@@ -100,7 +102,9 @@ class CommandsManager : ListenerAdapter() {
 
                 if (isTimeOverdue.not()) {
                     TaskScheduler.rescheduleMeeting(meetingOption, calendar)
-                    event.reply("$meetingOption rescheduled for ${calendar.time}")
+                    val format = createSimpleDateFormat(CalendarPattern.FULL)
+                    val formattedTime = format.format(calendar.time)
+                    event.reply("$meetingOption rescheduled for $formattedTime")
                         .queue()
                 } else {
                     event.reply("You enter a date in the past")
