@@ -6,18 +6,6 @@ import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import extension.getSimpleClassName
 import extension.parseStringDate
-import jda.CommandsConfigs.MAIN_COMMAND
-import jda.CommandsConfigs.MAIN_COMMAND_DESCRIPTION
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_INFO
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_INFO_DESCRIPTION
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_RESCHEDULING
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_RESCHEDULING_DESCRIPTION
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_STATS
-import jda.CommandsConfigs.MAIN_SUBCOMMAND_STATS_DESCRIPTION
-import jda.CommandsConfigs.OPTION_MEETING_DATE
-import jda.CommandsConfigs.OPTION_MEETING_DATE_DESCRIPTION
-import jda.CommandsConfigs.OPTION_MEETING_NAME
-import jda.CommandsConfigs.OPTION_MEETING_NAME_DESCRIPTION
 import latecomer.meeting.LatecomerUtil
 import latecomer.meeting.MeetingsConfig
 import latecomer.meeting.TaskScheduler
@@ -29,35 +17,41 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
-private object CommandsConfigs {
+private enum class Command(
+    val commandName: String,
+    val commandDescription: String,
+) {
+    MAIN("pavel", "Bot Pavel");
+}
 
-    const val MAIN_COMMAND = "pavel"
-    const val MAIN_COMMAND_DESCRIPTION = "Bot Pavel"
+private enum class SubCommand(
+    val commandName: String,
+    val commandDescription: String
+) {
+    HEY("hey", "Get welcome by bot"),
+    STATS("stats", "Latecomer's stats"),
+    RESCHEDULE("reschedule", "Rescheduling nearest meeting")
+}
 
-    const val MAIN_SUBCOMMAND_INFO = "hey"
-    const val MAIN_SUBCOMMAND_INFO_DESCRIPTION = "Get welcome by bot"
-
-    const val MAIN_SUBCOMMAND_STATS = "stats"
-    const val MAIN_SUBCOMMAND_STATS_DESCRIPTION = "Latecomer's stats"
-
-    const val MAIN_SUBCOMMAND_RESCHEDULING = "reschedule"
-    const val MAIN_SUBCOMMAND_RESCHEDULING_DESCRIPTION = "Rescheduling nearest meeting"
-    const val OPTION_MEETING_NAME = "name"
-    const val OPTION_MEETING_NAME_DESCRIPTION = "Meeting name"
-    const val OPTION_MEETING_DATE = "date"
-    const val OPTION_MEETING_DATE_DESCRIPTION = "Rescheduled meeting date with pattern \'dd-MM-yyyy HH:mm\'"
+private enum class CommandOption(
+    val optionName: String,
+    val optionDescription: String
+) {
+    MEETING_NAME("name", "Meeting name"),
+    MEETING_DATE("date", "Rescheduled meeting date with pattern \'dd-MM-yyyy HH:mm\'")
 }
 
 class CommandsManager : ListenerAdapter() {
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        if (event.name == MAIN_COMMAND) {
+        if (event.name == Command.MAIN.commandName) {
             when (event.subcommandName) {
-                MAIN_SUBCOMMAND_INFO -> onInfoCommand(event)
-                MAIN_SUBCOMMAND_STATS -> onStatsCommand(event)
-                MAIN_SUBCOMMAND_RESCHEDULING -> onRescheduleCommand(event)
+                SubCommand.HEY.commandName -> onInfoCommand(event)
+                SubCommand.STATS.commandName -> onStatsCommand(event)
+                SubCommand.RESCHEDULE.commandName -> onRescheduleCommand(event)
             }
         }
     }
@@ -78,8 +72,8 @@ class CommandsManager : ListenerAdapter() {
     }
 
     private fun onRescheduleCommand(event: SlashCommandInteractionEvent) {
-        val meetingOption = event.getOption(OPTION_MEETING_NAME)?.asString
-        val dateOption = event.getOption(OPTION_MEETING_DATE)?.asString
+        val meetingOption = event.getOption(CommandOption.MEETING_NAME.optionName)?.asString
+        val dateOption = event.getOption(CommandOption.MEETING_DATE.optionName)?.asString
 
         if (meetingOption != null && dateOption != null) {
             processRescheduleCommand(event, meetingOption, dateOption)
@@ -128,26 +122,48 @@ class CommandsManager : ListenerAdapter() {
 
     private fun registerCommands(event: GenericGuildEvent) {
         val commandData = listOf(
-            Commands.slash(MAIN_COMMAND, MAIN_COMMAND_DESCRIPTION)
-                .addSubcommands(SubcommandData(MAIN_SUBCOMMAND_INFO, MAIN_SUBCOMMAND_INFO_DESCRIPTION))
-                .addSubcommands(SubcommandData(MAIN_SUBCOMMAND_STATS, MAIN_SUBCOMMAND_STATS_DESCRIPTION))
+            Commands.slash(Command.MAIN.commandName, Command.MAIN.commandDescription)
+                .addSubcommands(subcommand = SubCommand.HEY)
+                .addSubcommands(subcommand = SubCommand.STATS)
                 .addSubcommands(
-                    SubcommandData(MAIN_SUBCOMMAND_RESCHEDULING, MAIN_SUBCOMMAND_RESCHEDULING_DESCRIPTION)
-                        .addOptions(
-                            OptionData(OptionType.STRING, OPTION_MEETING_NAME, OPTION_MEETING_NAME_DESCRIPTION, true)
-                                .addChoice(MeetingsConfig.Daily.getSimpleClassName())
-                                .addChoice(MeetingsConfig.Pbr.getSimpleClassName())
-                                .addChoice(MeetingsConfig.Retro.getSimpleClassName())
-                                .addChoice(MeetingsConfig.Planning.getSimpleClassName()),
-                            OptionData(OptionType.STRING, OPTION_MEETING_DATE, OPTION_MEETING_DATE_DESCRIPTION, true)
+                    subcommand = SubCommand.RESCHEDULE,
+                    options = listOf(
+                        makeOptionData(
+                            type = OptionType.STRING,
+                            commandOption = CommandOption.MEETING_NAME,
+                            choices = listOf(
+                                MeetingsConfig.Daily.getSimpleClassName(),
+                                MeetingsConfig.Pbr.getSimpleClassName(),
+                                MeetingsConfig.Retro.getSimpleClassName(),
+                                MeetingsConfig.Planning.getSimpleClassName()
+                            )
+                        ),
+                        makeOptionData(
+                            type = OptionType.STRING,
+                            commandOption = CommandOption.MEETING_DATE
                         )
+                    )
                 )
         )
         event.guild.updateCommands().addCommands(commandData).queue()
     }
 }
 
-private fun OptionData.addChoice(nameValue: String): OptionData {
-    addChoice(nameValue, nameValue)
+private fun SlashCommandData.addSubcommands(
+    subcommand: SubCommand,
+    options: List<OptionData> = emptyList()
+): SlashCommandData {
+    addSubcommands(SubcommandData(subcommand.commandName, subcommand.commandDescription)).addOptions(options)
     return this
+}
+
+private fun makeOptionData(
+    type: OptionType,
+    commandOption: CommandOption,
+    choices: List<String> = emptyList(),
+    isRequired: Boolean = true
+): OptionData {
+    val optionData = OptionData(type, commandOption.optionName, commandOption.optionDescription, isRequired)
+    choices.forEach { value -> optionData.addChoice(value, value) }
+    return optionData
 }
