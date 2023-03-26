@@ -1,6 +1,7 @@
 package logging
 
 import core.BotConfigs
+import extension.CalendarPattern
 import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import java.io.File
@@ -11,7 +12,7 @@ private const val LOGS_FILE = "logs.txt"
 object Logger {
 
     private val logsFile = File(LOGS_FILE)
-    private val formatter = createSimpleDateFormat("dd-MM-yyyy HH:mm:ss")
+    private val formatter = createSimpleDateFormat(CalendarPattern.FULL)
 
     fun logBotStartup() {
         log("Startup ${BotConfigs.VERSION}")
@@ -21,23 +22,7 @@ object Logger {
         log("Finishing ${BotConfigs.VERSION}")
     }
 
-    fun logDailyScheduled(meetingCalendar: Calendar) {
-        logMeetingScheduled(meetingCalendar, "daily")
-    }
-
-    fun logPbrScheduled(meetingCalendar: Calendar) {
-        logMeetingScheduled(meetingCalendar, "pbr")
-    }
-
-    fun logPlanningScheduled(meetingCalendar: Calendar) {
-        logMeetingScheduled(meetingCalendar, "planning")
-    }
-
-    fun logRetroScheduled(meetingCalendar: Calendar) {
-        logMeetingScheduled(meetingCalendar, "retro")
-    }
-
-    private fun logMeetingScheduled(meetingCalendar: Calendar, meetingName: String) {
+    fun logMeetingScheduled(meetingCalendar: Calendar, meetingName: String) {
         val meetingTime = formatter.format(meetingCalendar.time)
         val message = "Next $meetingName meeting scheduled for $meetingTime"
         log(message)

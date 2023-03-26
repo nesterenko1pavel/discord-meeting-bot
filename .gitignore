@@ -44,3 +44,4 @@ hs_err_pid*
 local_database.txt
 project.properties
 logs.txt
+meetings_config.json

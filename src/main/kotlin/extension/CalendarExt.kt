@@ -1,9 +1,6 @@
 package extension
 
-import latecomer.AvailableAllWorkingDays
 import latecomer.AvailableDays
-import latecomer.AvailableEveryTwoWeekDay
-import latecomer.AvailableEveryWeekDays
 import latecomer.model.DeltaMeetingDate
 import latecomer.model.MeetingDate
 import latecomer.model.MonthDayDate
@@ -24,7 +21,8 @@ private const val COUNT_DAYS_IN_WEEK = 7
 
 object CalendarPattern {
 
-    const val FULL = "dd-MM-yyyy HH:mm"
+    const val COMMON = "dd-MM-yyyy HH:mm"
+    const val FULL = "dd-MM-yyyy HH:mm:ss"
 }
 
 fun parseStringDate(
@@ -32,7 +30,7 @@ fun parseStringDate(
     onSuccess: (Calendar) -> Unit,
     onError: () -> Unit
 ) {
-    val format = createSimpleDateFormat(CalendarPattern.FULL)
+    val format = createSimpleDateFormat(CalendarPattern.COMMON)
     val data = try {
         format.parse(stringTime)
     } catch (ignore: ParseException) {
@@ -70,13 +68,13 @@ fun Calendar.setupForNearestMeetingDay(
     val currentDayOfMonth = get(Calendar.DAY_OF_MONTH)
 
     val deltaWeekDay = when (availableWeekDays) {
-        is AvailableAllWorkingDays -> getDaysDeltaOrZero(
+        is AvailableDays.AvailableAllWorkingDays -> getDaysDeltaOrZero(
             availableWeekDays.hour, availableWeekDays.minute
         )
-        is AvailableEveryWeekDays -> getDaysDeltaOrZero(
+        is AvailableDays.AvailableEveryWeekDays -> getDaysDeltaOrZero(
             availableWeekDays.meetingDays
         )
-        is AvailableEveryTwoWeekDay -> getDaysDeltaOrZero(
+        is AvailableDays.AvailableEveryTwoWeekDay -> getDaysDeltaOrZero(
             availableWeekDays.meetingDate, availableWeekDays.startFrom, COUNT_DAYS_IN_WEEK * 2
         )
     }

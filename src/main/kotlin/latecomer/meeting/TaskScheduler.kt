@@ -1,73 +1,48 @@
 package latecomer.meeting
 
-import config.FilesConfig
-import extension.getFirstTextChannelByName
-import extension.getFirstVoiceChannelByName
-import extension.getProperty
-import extension.getSimpleClassName
+import latecomer.MeetingsConfigProvider
 import latecomer.TaskManager
-import latecomer.meeting.daily.DailyLatecomerTimerTaskScheduler
-import latecomer.meeting.pbr.PbrLatecomerTimerTaskScheduler
-import latecomer.meeting.planning.PlanningLatecomerTimerTaskScheduler
-import latecomer.meeting.retro.RetroLatecomerTimerTaskScheduler
+import latecomer.meeting.universal.UniversalTimerTaskScheduler
+import latecomer.model.MeetingObject
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
-import java.io.File
 import java.util.Calendar
 import java.util.Timer
 
 object TaskScheduler {
 
-    private lateinit var verifiableVoiceChannel: VoiceChannel
-    private lateinit var reportingTextChannel: TextChannel
-    private lateinit var botSelfUserId: String
+    private lateinit var bot: JDA
 
     private val timer = Timer()
 
     fun init(bot: JDA) {
-        val projectPropertiesFile = File(FilesConfig.PROJECT_PROPERTIES_FILE)
-
-        verifiableVoiceChannel = bot.getFirstVoiceChannelByName(
-            projectPropertiesFile.getProperty("monitored_voice_channel")
-        )
-        reportingTextChannel = bot.getFirstTextChannelByName(
-            projectPropertiesFile.getProperty("messages_channel")
-        )
-        botSelfUserId = bot.selfUser.id
+        this.bot = bot
     }
 
-    fun scheduleDaily(initialCalendar: Calendar? = null) {
-        DailyLatecomerTimerTaskScheduler.schedule(
-            timer, botSelfUserId, verifiableVoiceChannel, reportingTextChannel, initialCalendar
-        )
+    fun scheduleAll(meetings: List<MeetingObject>) {
+        meetings.forEach { schedule(it) }
     }
 
-    fun schedulePbr(initialCalendar: Calendar? = null) {
-        PbrLatecomerTimerTaskScheduler.schedule(
-            timer, botSelfUserId, verifiableVoiceChannel, reportingTextChannel, initialCalendar
-        )
-    }
+    private fun schedule(meeting: MeetingObject, initialCalendar: Calendar? = null) {
+        val verifiableVoiceChannel = bot.getVoiceChannelById(meeting.verifiableVoiceChannel) ?: return
+        val reportingTextChannel = bot.getTextChannelById(meeting.reportingTextChannel) ?: return
 
-    fun scheduleRetro(initialCalendar: Calendar? = null) {
-        RetroLatecomerTimerTaskScheduler.schedule(
-            timer, botSelfUserId, verifiableVoiceChannel, reportingTextChannel, initialCalendar
+        UniversalTimerTaskScheduler.schedule(
+            timer,
+            bot.selfUser.id,
+            verifiableVoiceChannel,
+            reportingTextChannel,
+            meeting.availableDays,
+            meeting.name,
+            initialCalendar
         )
     }
 
-    fun schedulePlanning(initialCalendar: Calendar? = null) {
-        PlanningLatecomerTimerTaskScheduler.schedule(
-            timer, botSelfUserId, verifiableVoiceChannel, reportingTextChannel, initialCalendar
-        )
-    }
-
-    fun rescheduleMeeting(meetingName: String, initialCalendar: Calendar) {
-        TaskManager.cancel(meetingName)
-        when (meetingName) {
-            MeetingsConfig.Daily.getSimpleClassName() -> scheduleDaily(initialCalendar)
-            MeetingsConfig.Pbr.getSimpleClassName() -> schedulePbr(initialCalendar)
-            MeetingsConfig.Retro.getSimpleClassName() -> scheduleRetro(initialCalendar)
-            MeetingsConfig.Planning.getSimpleClassName() -> schedulePlanning(initialCalendar)
-        }
+    fun reschedule(meetingName: String, initialCalendar: Calendar) {
+        MeetingsConfigProvider.provideMeetings()
+            .find { it.name == meetingName }
+            ?.let { meeting ->
+                TaskManager.cancel(meetingName)
+                schedule(meeting, initialCalendar)
+            }
     }
 }

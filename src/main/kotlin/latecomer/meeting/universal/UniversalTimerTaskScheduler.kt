@@ -1,36 +1,41 @@
-package latecomer.meeting.planning
+package latecomer.meeting.universal
 
 import extension.getGregorianCalendar
 import extension.setupForNearestMeetingDay
+import latecomer.AvailableDays
 import latecomer.TaskManager
-import latecomer.meeting.MeetingsConfig
 import logging.Logger
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import java.util.Calendar
 import java.util.Timer
 
-object PlanningLatecomerTimerTaskScheduler {
+object UniversalTimerTaskScheduler {
 
     fun schedule(
         timer: Timer,
         botUserId: String,
         verifiableVoiceChannel: VoiceChannel,
         reportingTextChannel: TextChannel,
+        availableDays: AvailableDays,
+        meetingName: String,
         initialCalendar: Calendar? = null
     ) {
         val calendar = initialCalendar
             ?: getGregorianCalendar().apply {
-                setupForNearestMeetingDay(availableWeekDays = MeetingsConfig.Planning.availableWeekDay)
+                setupForNearestMeetingDay(availableDays)
             }
-        val planningLatecomerTimerTask = PlanningTimerTask(
+        val universalTimerTask = UniversalTimerTask(
             timer = timer,
             botUserId = botUserId,
             verifiableVoiceChannel = verifiableVoiceChannel,
             reportingTextChannel = reportingTextChannel,
+            availableDays = availableDays,
+            meetingName = meetingName,
+
         )
-        timer.schedule(planningLatecomerTimerTask, calendar.time)
-        Logger.logPlanningScheduled(calendar)
-        TaskManager.putTask(MeetingsConfig.Planning, planningLatecomerTimerTask)
+        timer.schedule(universalTimerTask, calendar.time)
+        Logger.logMeetingScheduled(calendar, meetingName)
+        TaskManager.putTask(meetingName, universalTimerTask)
     }
 }

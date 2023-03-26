@@ -4,10 +4,9 @@ import core.BotConfigs
 import extension.CalendarPattern
 import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
-import extension.getSimpleClassName
 import extension.parseStringDate
+import latecomer.MeetingsConfigProvider
 import latecomer.meeting.LatecomerUtil
-import latecomer.meeting.MeetingsConfig
 import latecomer.meeting.TaskScheduler
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
@@ -95,8 +94,8 @@ class CommandsManager : ListenerAdapter() {
                 val isTimeOverdue = nowCalendar > calendar
 
                 if (isTimeOverdue.not()) {
-                    TaskScheduler.rescheduleMeeting(meetingOption, calendar)
-                    val format = createSimpleDateFormat(CalendarPattern.FULL)
+                    TaskScheduler.reschedule(meetingOption, calendar)
+                    val format = createSimpleDateFormat(CalendarPattern.COMMON)
                     val formattedTime = format.format(calendar.time)
                     event.reply("$meetingOption rescheduled for $formattedTime")
                         .queue()
@@ -131,12 +130,7 @@ class CommandsManager : ListenerAdapter() {
                         makeOptionData(
                             type = OptionType.STRING,
                             commandOption = CommandOption.MEETING_NAME,
-                            choices = listOf(
-                                MeetingsConfig.Daily.getSimpleClassName(),
-                                MeetingsConfig.Pbr.getSimpleClassName(),
-                                MeetingsConfig.Retro.getSimpleClassName(),
-                                MeetingsConfig.Planning.getSimpleClassName()
-                            )
+                            choices = MeetingsConfigProvider.provideMeetings().map { it.name }
                         ),
                         makeOptionData(
                             type = OptionType.STRING,
@@ -153,8 +147,7 @@ private fun SlashCommandData.addSubcommands(
     subcommand: SubCommand,
     options: List<OptionData> = emptyList()
 ): SlashCommandData {
-    addSubcommands(SubcommandData(subcommand.commandName, subcommand.commandDescription)).addOptions(options)
-    return this
+    return addSubcommands(SubcommandData(subcommand.commandName, subcommand.commandDescription).addOptions(options))
 }
 
 private fun makeOptionData(

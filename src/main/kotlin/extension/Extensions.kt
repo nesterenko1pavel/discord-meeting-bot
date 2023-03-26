@@ -1,10 +1,6 @@
 package extension
 
-import latecomer.meeting.MeetingsConfig
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import java.io.File
 import java.util.Properties
 
@@ -14,14 +10,6 @@ fun doubleDuplicatedListOf(vararg elements: Int): List<Int> {
     } else {
         emptyList()
     }
-}
-
-fun JDA.getFirstTextChannelByName(name: String): TextChannel {
-    return getTextChannelsByName(name, true).first()
-}
-
-fun JDA.getFirstVoiceChannelByName(name: String): VoiceChannel {
-    return getVoiceChannelsByName(name, true).first()
 }
 
 fun List<Member>.saveMembersIdToFile(fileName: String) {
@@ -40,5 +28,3 @@ fun <T : Any> File.getProperty(propertyName: String): T {
     @Suppress("UNCHECKED_CAST")
     return prop[propertyName] as T
 }
-
-fun MeetingsConfig.getSimpleClassName(): String = this.javaClass.simpleName
