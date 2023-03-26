@@ -13,5 +13,6 @@ data class MeetingObject(
     val name: String,
     val availableDays: AvailableDays,
     val verifiableVoiceChannel: Long,
-    val reportingTextChannel: Long
+    val reportingTextChannel: Long,
+    val nearestMeetingTime: String? = null
 )

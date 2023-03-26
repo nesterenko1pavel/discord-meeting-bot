@@ -5,7 +5,7 @@ import extension.CalendarPattern
 import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import extension.parseStringDate
-import latecomer.MeetingsConfigProvider
+import latecomer.MeetingsConfig
 import latecomer.meeting.LatecomerUtil
 import latecomer.meeting.TaskScheduler
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent
@@ -94,11 +94,11 @@ class CommandsManager : ListenerAdapter() {
                 val isTimeOverdue = nowCalendar > calendar
 
                 if (isTimeOverdue.not()) {
-                    TaskScheduler.reschedule(meetingOption, calendar)
+                    TaskScheduler.reschedule(meetingOption, calendar, dateOption)
                     val format = createSimpleDateFormat(CalendarPattern.COMMON)
                     val formattedTime = format.format(calendar.time)
                     event.reply("$meetingOption rescheduled for $formattedTime")
-                        .queue()
+                        .submit()
                 } else {
                     event.reply("You enter a date in the past")
                         .queue()
@@ -130,7 +130,7 @@ class CommandsManager : ListenerAdapter() {
                         makeOptionData(
                             type = OptionType.STRING,
                             commandOption = CommandOption.MEETING_NAME,
-                            choices = MeetingsConfigProvider.provideMeetings().map { it.name }
+                            choices = MeetingsConfig.provideMeetings().map { it.name }
                         ),
                         makeOptionData(
                             type = OptionType.STRING,

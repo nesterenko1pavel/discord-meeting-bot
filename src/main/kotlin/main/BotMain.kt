@@ -4,7 +4,7 @@ import config.FilesConfig
 import core.BotRuntime
 import extension.getProperty
 import jda.JDADefaultBuilder
-import latecomer.MeetingsConfigProvider
+import latecomer.MeetingsConfig
 import latecomer.meeting.TaskScheduler
 import logging.Logger
 import java.io.File
@@ -21,5 +21,5 @@ fun main() {
 
     TaskScheduler.init(bot)
 
-    TaskScheduler.scheduleAll(MeetingsConfigProvider.provideMeetings())
+    TaskScheduler.scheduleAll(MeetingsConfig.provideMeetings())
 }

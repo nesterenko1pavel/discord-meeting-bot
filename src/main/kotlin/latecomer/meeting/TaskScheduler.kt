@@ -1,6 +1,7 @@
 package latecomer.meeting
 
-import latecomer.MeetingsConfigProvider
+import extension.parseStringDate
+import latecomer.MeetingsConfig
 import latecomer.TaskManager
 import latecomer.meeting.universal.UniversalTimerTaskScheduler
 import latecomer.model.MeetingObject
@@ -22,7 +23,15 @@ object TaskScheduler {
         meetings.forEach { schedule(it) }
     }
 
-    private fun schedule(meeting: MeetingObject, initialCalendar: Calendar? = null) {
+    private fun schedule(meeting: MeetingObject) {
+        parseStringDate(
+            stringTime = meeting.nearestMeetingTime.orEmpty(),
+            onSuccess = { calendar -> schedule(meeting, calendar) },
+            onError = { schedule(meeting, null) }
+        )
+    }
+
+    private fun schedule(meeting: MeetingObject, calendar: Calendar?) {
         val verifiableVoiceChannel = bot.getVoiceChannelById(meeting.verifiableVoiceChannel) ?: return
         val reportingTextChannel = bot.getTextChannelById(meeting.reportingTextChannel) ?: return
 
@@ -33,16 +42,17 @@ object TaskScheduler {
             reportingTextChannel,
             meeting.availableDays,
             meeting.name,
-            initialCalendar
+            calendar
         )
     }
 
-    fun reschedule(meetingName: String, initialCalendar: Calendar) {
-        MeetingsConfigProvider.provideMeetings()
+    fun reschedule(meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
+        MeetingsConfig.provideMeetings()
             .find { it.name == meetingName }
             ?.let { meeting ->
                 TaskManager.cancel(meetingName)
                 schedule(meeting, initialCalendar)
+                MeetingsConfig.updateRescheduledMeeting(meetingName, meetingStringDate)
             }
     }
 }

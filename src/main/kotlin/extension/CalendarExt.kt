@@ -28,7 +28,7 @@ object CalendarPattern {
 fun parseStringDate(
     stringTime: String,
     onSuccess: (Calendar) -> Unit,
-    onError: () -> Unit
+    onError: () -> Unit = {}
 ) {
     val format = createSimpleDateFormat(CalendarPattern.COMMON)
     val data = try {
