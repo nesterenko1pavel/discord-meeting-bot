@@ -6,7 +6,7 @@ import latecomer.model.MeetingObject
 import latecomer.model.MeetingsObject
 import java.io.File
 
-object MeetingsConfig {
+object MeetingsUtil {
 
     fun provideMeetings(): List<MeetingObject> {
         val meetingsData = File(FilesConfig.MEETINGS_CONFIG).readText()

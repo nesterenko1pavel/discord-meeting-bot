@@ -1,7 +1,7 @@
 package latecomer.meeting
 
 import extension.parseStringDate
-import latecomer.MeetingsConfig
+import latecomer.MeetingsUtil
 import latecomer.TaskManager
 import latecomer.meeting.universal.UniversalTimerTaskScheduler
 import latecomer.model.MeetingObject
@@ -47,12 +47,12 @@ object TaskScheduler {
     }
 
     fun reschedule(meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
-        MeetingsConfig.provideMeetings()
+        MeetingsUtil.provideMeetings()
             .find { it.name == meetingName }
             ?.let { meeting ->
                 TaskManager.cancel(meetingName)
                 schedule(meeting, initialCalendar)
-                MeetingsConfig.updateRescheduledMeeting(meetingName, meetingStringDate)
+                MeetingsUtil.updateRescheduledMeeting(meetingName, meetingStringDate)
             }
     }
 }
