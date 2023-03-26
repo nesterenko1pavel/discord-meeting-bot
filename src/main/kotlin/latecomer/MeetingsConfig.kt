@@ -31,6 +31,7 @@ object MeetingsConfig {
 
             val moshi = Moshi.Builder().build()
             val adapter = moshi.adapter(MeetingsObject::class.java)
+                .indent("    ")
             val json = adapter.toJson(MeetingsObject(meetings))
 
             File(FilesConfig.MEETINGS_CONFIG).writeText(json)
