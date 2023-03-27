@@ -5,7 +5,7 @@ import core.BotRuntime
 import extension.getProperty
 import jda.JDADefaultBuilder
 import latecomer.MeetingsUtil
-import latecomer.meeting.TaskScheduler
+import latecomer.task.TaskScheduler
 import logging.Logger
 import java.io.File
 

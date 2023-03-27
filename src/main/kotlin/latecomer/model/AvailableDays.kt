@@ -1,10 +1,7 @@
-package latecomer
+package latecomer.model
 
 import com.squareup.moshi.JsonClass
 import dev.zacsweers.moshix.sealed.annotations.TypeLabel
-import latecomer.model.MeetingDate
-import latecomer.model.MonthDayDate
-import latecomer.model.SimpleMeetingDate
 
 @JsonClass(generateAdapter = true, generator = "sealed:type")
 sealed class AvailableDays {

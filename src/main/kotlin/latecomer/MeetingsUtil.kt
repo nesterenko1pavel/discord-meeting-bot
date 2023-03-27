@@ -6,16 +6,24 @@ import latecomer.model.MeetingObject
 import latecomer.model.MeetingsObject
 import java.io.File
 
+private const val INDENT_SPACES = "    "
+
 object MeetingsUtil {
 
+    private val meetingConfigFile = File(FilesConfig.MEETINGS_CONFIG)
+
+    private val adapter = Moshi.Builder()
+        .build()
+        .adapter(MeetingsObject::class.java)
+        .indent(INDENT_SPACES)
+
     fun provideMeetings(): List<MeetingObject> {
-        val meetingsData = File(FilesConfig.MEETINGS_CONFIG).readText()
-        val moshi = Moshi.Builder().build()
-        val adapter = moshi.adapter(MeetingsObject::class.java)
+        val meetingsData = meetingConfigFile.readText()
         return adapter.fromJson(meetingsData)?.meetings ?: emptyList()
     }
 
-    fun updateRescheduledMeeting(meetingName: String, nextTime: String) {
+
+    fun updateNextMeetingTime(meetingName: String, nextTime: String? = null) {
         val currentMeetings = provideMeetings()
 
         val meetings = mutableListOf<MeetingObject>()
@@ -29,12 +37,9 @@ object MeetingsUtil {
             val newMeeting = meeting.copy(nearestMeetingTime = nextTime)
             meetings.add(newMeeting)
 
-            val moshi = Moshi.Builder().build()
-            val adapter = moshi.adapter(MeetingsObject::class.java)
-                .indent("    ")
             val json = adapter.toJson(MeetingsObject(meetings))
 
-            File(FilesConfig.MEETINGS_CONFIG).writeText(json)
+            meetingConfigFile.writeText(json)
         }
     }
 }

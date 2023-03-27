@@ -1,10 +1,8 @@
-package latecomer.meeting
+package latecomer
 
 import config.FilesConfig
 import extension.saveMembersIdToFile
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import java.io.File
 
 object LatecomerUtil {
@@ -30,13 +28,12 @@ object LatecomerUtil {
     }
 
     fun verifyLatecomers(
-        reportingTextChannel: TextChannel,
-        verifiableVoiceChannel: VoiceChannel,
-        botUserId: String,
+        membersInVerifiableChannel: List<Member>,
+        membersForVerification: List<Member>,
         shouldSaveStats: Boolean = true,
         onNotEmptyLatecomers: (String) -> Unit
     ) {
-        val latecomers = getLatecomers(reportingTextChannel, verifiableVoiceChannel, botUserId)
+        val latecomers = getLatecomers(membersInVerifiableChannel, membersForVerification)
 
         val reportMessage = if (latecomers.isNotEmpty()) {
             val latecomersMessage = StringBuilder()
@@ -62,12 +59,11 @@ object LatecomerUtil {
     }
 
     private fun getLatecomers(
-        reportingTextChannel: TextChannel,
-        verifiableVoiceChannel: VoiceChannel,
-        botUserId: String
+        membersInVerifiableChannel: List<Member>,
+        membersForVerification: List<Member>
     ): List<Member> {
-        return reportingTextChannel.members.filterNot { member ->
-            verifiableVoiceChannel.members.contains(member) || member.id == botUserId
+        return membersForVerification.filterNot { member ->
+            membersInVerifiableChannel.contains(member) || member.roles.any { it.tags.isBot }
         }
     }
 }

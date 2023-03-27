@@ -1,7 +1,6 @@
 package latecomer.model
 
 import com.squareup.moshi.JsonClass
-import latecomer.AvailableDays
 
 @JsonClass(generateAdapter = true)
 data class MeetingsObject(
@@ -14,5 +13,6 @@ data class MeetingObject(
     val availableDays: AvailableDays,
     val verifiableVoiceChannel: Long,
     val reportingTextChannel: Long,
-    val nearestMeetingTime: String? = null
+    val nearestMeetingTime: String? = null,
+    val verifiableRoleId: String
 )

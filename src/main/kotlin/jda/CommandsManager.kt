@@ -6,8 +6,8 @@ import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import extension.parseStringDate
 import latecomer.MeetingsUtil
-import latecomer.meeting.LatecomerUtil
-import latecomer.meeting.TaskScheduler
+import latecomer.LatecomerUtil
+import latecomer.task.TaskScheduler
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent

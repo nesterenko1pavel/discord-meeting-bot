@@ -1,4 +1,4 @@
-package latecomer
+package latecomer.task
 
 import java.util.TimerTask
 

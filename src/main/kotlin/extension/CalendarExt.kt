@@ -1,6 +1,6 @@
 package extension
 
-import latecomer.AvailableDays
+import latecomer.model.AvailableDays
 import latecomer.model.DeltaMeetingDate
 import latecomer.model.MeetingDate
 import latecomer.model.MonthDayDate
