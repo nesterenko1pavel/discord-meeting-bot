@@ -5,8 +5,8 @@ import extension.CalendarPattern
 import extension.createSimpleDateFormat
 import extension.getGregorianCalendar
 import extension.parseStringDate
-import latecomer.MeetingsUtil
 import latecomer.LatecomerUtil
+import latecomer.MeetingsUtil
 import latecomer.task.TaskScheduler
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
@@ -32,7 +32,8 @@ private enum class SubCommand(
 ) {
     HEY("hey", "Get welcome by bot"),
     STATS("stats", "Latecomer's stats"),
-    RESCHEDULE("reschedule", "Rescheduling nearest meeting")
+    RESCHEDULE("reschedule", "Rescheduling nearest meeting"),
+    LATECOME("latecome", "Notify bot when you're late")
 }
 
 private enum class CommandOption(
@@ -51,6 +52,7 @@ class CommandsManager : ListenerAdapter() {
                 SubCommand.HEY.commandName -> onInfoCommand(event)
                 SubCommand.STATS.commandName -> onStatsCommand(event)
                 SubCommand.RESCHEDULE.commandName -> onRescheduleCommand(event)
+                SubCommand.LATECOME.commandName -> onLatecomeCommand(event)
             }
         }
     }
@@ -111,6 +113,13 @@ class CommandsManager : ListenerAdapter() {
         )
     }
 
+    private fun onLatecomeCommand(event: SlashCommandInteractionEvent) {
+        // todo: добавить в MeetingObject объект с датой ближайшей встречи и
+        // todo: списком membersId, кто опоздает, чтобы их не тегало.
+        // todo: список зануляется только при переносе встречи или установке новой даты встречи.
+        // todo: по команде расширять список membersId, которые опоздают
+    }
+
     override fun onGuildReady(event: GuildReadyEvent) {
         registerCommands(event)
     }
@@ -120,6 +129,12 @@ class CommandsManager : ListenerAdapter() {
     }
 
     private fun registerCommands(event: GenericGuildEvent) {
+        val meetingNamesOptionData = makeOptionData(
+            type = OptionType.STRING,
+            commandOption = CommandOption.MEETING_NAME,
+            choices = MeetingsUtil.provideMeetings().map { it.name }
+        )
+
         val commandData = listOf(
             Commands.slash(Command.MAIN.commandName, Command.MAIN.commandDescription)
                 .addSubcommands(subcommand = SubCommand.HEY)
@@ -127,16 +142,16 @@ class CommandsManager : ListenerAdapter() {
                 .addSubcommands(
                     subcommand = SubCommand.RESCHEDULE,
                     options = listOf(
-                        makeOptionData(
-                            type = OptionType.STRING,
-                            commandOption = CommandOption.MEETING_NAME,
-                            choices = MeetingsUtil.provideMeetings().map { it.name }
-                        ),
+                        meetingNamesOptionData,
                         makeOptionData(
                             type = OptionType.STRING,
                             commandOption = CommandOption.MEETING_DATE
                         )
                     )
+                )
+                .addSubcommands(
+                    subcommand = SubCommand.LATECOME,
+                    options = listOf(meetingNamesOptionData)
                 )
         )
         event.guild.updateCommands().addCommands(commandData).queue()

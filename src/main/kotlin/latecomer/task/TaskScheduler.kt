@@ -43,13 +43,10 @@ object TaskScheduler {
     }
 
     fun reschedule(meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
-        MeetingsUtil.provideMeetings()
-            .find { it.name == meetingName }
-            ?.let { meeting ->
-                TaskManager.cancel(meetingName)
-                schedule(meeting, initialCalendar)
-                MeetingsUtil.updateNextMeetingTime(meetingName, meetingStringDate)
-            }
+        MeetingsUtil.provideMeetingByName(meetingName)?.let { meeting ->
+            schedule(meeting, initialCalendar)
+            MeetingsUtil.updateNextMeetingTime(meetingName, meetingStringDate)
+        }
     }
 
     private fun schedule(meetingObject: MeetingObject, initialCalendar: Calendar?) {

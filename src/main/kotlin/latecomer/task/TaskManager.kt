@@ -7,11 +7,12 @@ object TaskManager {
     private val tasksMap = ConcurrentHashMap<String, BaseTimerTask>()
 
     fun putTask(meetingName: String, task: BaseTimerTask) {
-        cancel(meetingName)
+        remove(meetingName)
         tasksMap[meetingName] = task
     }
 
-    fun cancel(taskName: String) {
+    private fun remove(taskName: String) {
         tasksMap[taskName]?.cancel()
+        tasksMap.remove(taskName)
     }
 }

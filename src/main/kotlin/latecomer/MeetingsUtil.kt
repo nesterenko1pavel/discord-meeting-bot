@@ -17,11 +17,14 @@ object MeetingsUtil {
         .adapter(MeetingsObject::class.java)
         .indent(INDENT_SPACES)
 
+    fun provideMeetingByName(meetingName: String): MeetingObject? {
+        return provideMeetings().find { it.name == meetingName }
+    }
+
     fun provideMeetings(): List<MeetingObject> {
         val meetingsData = meetingConfigFile.readText()
         return adapter.fromJson(meetingsData)?.meetings ?: emptyList()
     }
-
 
     fun updateNextMeetingTime(meetingName: String, nextTime: String? = null) {
         val currentMeetings = provideMeetings()
