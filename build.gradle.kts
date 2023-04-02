@@ -16,7 +16,7 @@ dependencies {
     val jda = "5.0.0-beta.5"
     implementation("net.dv8tion:JDA:$jda")
 
-    implementation("com.squareup.retrofit2:converter-gson:2.7.2")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.10")
 }
 
