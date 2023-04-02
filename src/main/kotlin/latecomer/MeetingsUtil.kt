@@ -1,26 +1,26 @@
 package latecomer
 
-import com.squareup.moshi.Moshi
+import com.google.gson.GsonBuilder
 import config.FilesConfig
 import extension.CalendarPattern
 import extension.getGregorianCalendar
 import extension.parseStringDate
 import latecomer.model.AbsenceMemberObject
 import latecomer.model.AbsenceObject
+import latecomer.model.AvailableDays
 import latecomer.model.MeetingObject
 import latecomer.model.MeetingsObject
 import java.io.File
-
-private const val INDENT_SPACES = "    "
 
 object MeetingsUtil {
 
     private val meetingConfigFile = File(FilesConfig.MEETINGS_CONFIG)
 
-    private val adapter = Moshi.Builder()
-        .build()
-        .adapter(MeetingsObject::class.java)
-        .indent(INDENT_SPACES)
+    private val adapter = GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeAdapterFactory(SealedTypeAdapterFactory.of(AvailableDays::class))
+        .create()
+        .getAdapter(MeetingsObject::class.java)
 
     fun provideMeetingsObject(): MeetingsObject? {
         val meetingsData = meetingConfigFile.readText()
