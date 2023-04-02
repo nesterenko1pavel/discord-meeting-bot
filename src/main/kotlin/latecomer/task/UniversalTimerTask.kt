@@ -1,6 +1,7 @@
 package latecomer.task
 
 import latecomer.LatecomerUtil
+import latecomer.MeetingsUtil
 import latecomer.model.MeetingObject
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
@@ -14,6 +15,8 @@ class UniversalTimerTask(
 ) : BaseTimerTask() {
 
     override fun scheduleNext() {
+        MeetingsUtil.deleteWarnedMembersIds(meetingObject.name)
+        MeetingsUtil.updateAbsenceObject()
         TaskScheduler.schedule(meetingObject)
     }
 
@@ -24,7 +27,8 @@ class UniversalTimerTask(
 
         LatecomerUtil.verifyLatecomers(
             membersInVerifiableChannel = verifiableVoiceChannel.members,
-            membersForVerification = membersForVerification
+            membersForVerification = membersForVerification,
+            warnedMembersIds = meetingObject.warnedMembersIds
         ) { reportMessage ->
             reportingTextChannel.sendMessage(reportMessage)
                 .queue()

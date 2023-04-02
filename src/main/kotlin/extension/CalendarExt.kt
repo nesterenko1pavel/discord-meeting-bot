@@ -23,6 +23,27 @@ object CalendarPattern {
 
     const val COMMON = "dd-MM-yyyy HH:mm"
     const val FULL = "dd-MM-yyyy HH:mm:ss"
+    const val SHORT = "dd-MM-yyyy"
+}
+
+fun parseStringDate(
+    stringTime: String,
+    pattern: String = CalendarPattern.COMMON
+): Calendar? {
+    val format = createSimpleDateFormat(pattern)
+    val data = try {
+        format.parse(stringTime)
+    } catch (ignore: ParseException) {
+        null
+    }
+    val calendar = if (data != null) {
+        getGregorianCalendar().apply {
+            time = data
+        }
+    } else {
+        null
+    }
+    return calendar
 }
 
 fun parseStringDate(

@@ -49,21 +49,29 @@ object TaskScheduler {
         }
     }
 
+    fun reschedule(meetingName: String) {
+        MeetingsUtil.provideMeetingByName(meetingName)?.let { meetingObject ->
+            schedule(meetingObject)
+        }
+    }
+
     private fun schedule(meetingObject: MeetingObject, initialCalendar: Calendar?) {
-        val reportingTextChannel = bot.getTextChannelById(meetingObject.reportingTextChannel) ?: return
-        val verifiableVoiceChannel = bot.getVoiceChannelById(meetingObject.verifiableVoiceChannel) ?: return
-        val verifiableRole = bot.roles.firstOrNull { role -> role.id == meetingObject.verifiableRoleId } ?: return
+        val actualMeetingObject = MeetingsUtil.provideMeetingByName(meetingObject.name) ?: return
+
+        val reportingTextChannel = bot.getTextChannelById(actualMeetingObject.reportingTextChannel) ?: return
+        val verifiableVoiceChannel = bot.getVoiceChannelById(actualMeetingObject.verifiableVoiceChannel) ?: return
+        val verifiableRole = bot.roles.firstOrNull { role -> role.id == actualMeetingObject.verifiableRoleId } ?: return
 
         val calendar = initialCalendar
             ?: getGregorianCalendar().apply {
-                setupForNearestMeetingDay(meetingObject.availableDays)
+                setupForNearestMeetingDay(actualMeetingObject.availableDays)
             }
         val universalTimerTask = UniversalTimerTask(
-            reportingTextChannel, verifiableVoiceChannel, verifiableRole, meetingObject
+            reportingTextChannel, verifiableVoiceChannel, verifiableRole, actualMeetingObject
         )
 
         timer.schedule(universalTimerTask, calendar.time)
-        Logger.logMeetingScheduled(calendar, meetingObject.name)
-        TaskManager.putTask(meetingObject.name, universalTimerTask)
+        Logger.logMeetingScheduled(calendar, actualMeetingObject.name)
+        TaskManager.putTask(actualMeetingObject.name, universalTimerTask)
     }
 }
