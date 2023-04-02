@@ -1,6 +1,6 @@
 package latecomer.model
 
-data class MeetingsObject(
+data class MeetingsConfigObject(
     val meetings: List<MeetingObject>,
     val absence: AbsenceObject? = null
 )

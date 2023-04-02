@@ -45,7 +45,7 @@ private enum class CommandOption(
     MEETING_DATE("date", "Rescheduled meeting date with pattern \'dd-MM-yyyy HH:mm\'"),
     ABSENCE_START_DATE("date-start", "Enter first or only date of absence with patter \'dd-MM-yyyy\'"),
     ABSENCE_END_DATE("date-end", "Enter last date of absence with patter \'dd-MM-yyyy\'"),
-    MEMBER("member", "Enter the member for which the command applies")
+    MEMBER("member", "Enter the member for which the command applies. By default applies to you")
 
 }
 

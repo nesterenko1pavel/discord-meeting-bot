@@ -9,7 +9,7 @@ import latecomer.model.AbsenceMemberObject
 import latecomer.model.AbsenceObject
 import latecomer.model.AvailableDays
 import latecomer.model.MeetingObject
-import latecomer.model.MeetingsObject
+import latecomer.model.MeetingsConfigObject
 import java.io.File
 
 object MeetingsUtil {
@@ -20,9 +20,9 @@ object MeetingsUtil {
         .setPrettyPrinting()
         .registerTypeAdapterFactory(SealedTypeAdapterFactory.of(AvailableDays::class))
         .create()
-        .getAdapter(MeetingsObject::class.java)
+        .getAdapter(MeetingsConfigObject::class.java)
 
-    fun provideMeetingsObject(): MeetingsObject? {
+    fun provideMeetingsObject(): MeetingsConfigObject? {
         val meetingsData = meetingConfigFile.readText()
         return adapter.fromJson(meetingsData)
     }
@@ -43,7 +43,7 @@ object MeetingsUtil {
             val newMeeting = meeting.copy(nearestMeetingTime = nextTime)
             meetings.add(newMeeting)
 
-            val json = adapter.toJson(MeetingsObject(meetings))
+            val json = adapter.toJson(MeetingsConfigObject(meetings))
             meetingConfigFile.writeText(json)
         }
     }
@@ -89,7 +89,7 @@ object MeetingsUtil {
     }
 
     private fun writeMeetingsObjectToFile(meetings: List<MeetingObject>) {
-        val json = adapter.toJson(MeetingsObject(meetings, provideMeetingsObject()?.absence))
+        val json = adapter.toJson(MeetingsConfigObject(meetings, provideMeetingsObject()?.absence))
         meetingConfigFile.writeText(json)
     }
 
@@ -101,7 +101,7 @@ object MeetingsUtil {
 
         newAbsenceMemberObjectList.add(AbsenceMemberObject(memberId, dateStartOption, dateEndOption))
 
-        val json = adapter.toJson(MeetingsObject(meetingsObject.meetings, AbsenceObject(newAbsenceMemberObjectList)))
+        val json = adapter.toJson(MeetingsConfigObject(meetingsObject.meetings, AbsenceObject(newAbsenceMemberObjectList)))
         meetingConfigFile.writeText(json)
     }
 
@@ -122,7 +122,7 @@ object MeetingsUtil {
             }
         }
 
-        val json = adapter.toJson(MeetingsObject(provideMeetings(), AbsenceObject(newAbsenceMemberObjectList)))
+        val json = adapter.toJson(MeetingsConfigObject(provideMeetings(), AbsenceObject(newAbsenceMemberObjectList)))
         meetingConfigFile.writeText(json)
     }
 }
