@@ -92,25 +92,22 @@ class CommandsManager : ListenerAdapter() {
         meetingOption: String,
         dateOption: String
     ) {
-        parseStringDate(
-            stringTime = dateOption,
-            onSuccess = { calendar ->
-                val nowCalendar = getGregorianCalendar()
-                val isTimeOverdue = nowCalendar > calendar
+        val parsedCalendar = parseStringDate(dateOption)
+        if (parsedCalendar != null) {
+            val nowCalendar = getGregorianCalendar()
+            val isTimeOverdue = nowCalendar > parsedCalendar
 
-                if (isTimeOverdue.not()) {
-                    TaskScheduler.reschedule(meetingOption, calendar, dateOption)
-                    val format = createSimpleDateFormat(CalendarPattern.COMMON)
-                    val formattedTime = format.format(calendar.time)
-                    event.fastReplay("$meetingOption rescheduled for $formattedTime")
-                } else {
-                    event.fastReplay("You enter a date in the past")
-                }
-            },
-            onError = {
-                event.fastReplay("Wrong date")
+            if (isTimeOverdue.not()) {
+                TaskScheduler.reschedule(meetingOption, parsedCalendar, dateOption)
+                val format = createSimpleDateFormat(CalendarPattern.COMMON)
+                val formattedTime = format.format(parsedCalendar.time)
+                event.fastReplay("$meetingOption rescheduled for $formattedTime")
+            } else {
+                event.fastReplay("You enter a date in the past")
             }
-        )
+        } else {
+            event.fastReplay("Wrong date")
+        }
     }
 
     private fun onLatecomeCommand(event: SlashCommandInteractionEvent) {

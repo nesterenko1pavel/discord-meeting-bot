@@ -46,31 +46,6 @@ fun parseStringDate(
     return calendar
 }
 
-fun parseStringDate(
-    stringTime: String,
-    onSuccess: (Calendar) -> Unit,
-    onError: () -> Unit = {}
-) {
-    val format = createSimpleDateFormat(CalendarPattern.COMMON)
-    val data = try {
-        format.parse(stringTime)
-    } catch (ignore: ParseException) {
-        null
-    }
-    val calendar = if (data != null) {
-        getGregorianCalendar().apply {
-            time = data
-        }
-    } else {
-        null
-    }
-    if (calendar != null) {
-        onSuccess(calendar)
-    } else {
-        onError()
-    }
-}
-
 fun getGregorianCalendar(): Calendar {
     val locale = Locale.forLanguageTag(LANGUAGE_TAG)
     val timeZone = TimeZone.getTimeZone(TIME_ZONE)

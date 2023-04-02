@@ -25,21 +25,20 @@ object TaskScheduler {
     }
 
     fun schedule(meeting: MeetingObject) {
-        parseStringDate(
-            stringTime = meeting.nearestMeetingTime.orEmpty(),
-            onSuccess = { calendar ->
-                val nowCalendar = getGregorianCalendar()
-                val isTimeOverdue = nowCalendar >= calendar
+        val parsedCalendar = meeting.nearestMeetingTime?.let { parseStringDate(it) }
+        if (parsedCalendar != null) {
+            val nowCalendar = getGregorianCalendar()
+            val isTimeOverdue = nowCalendar >= parsedCalendar
 
-                if (isTimeOverdue) {
-                    MeetingsUtil.updateNextMeetingTime(meeting.name, nextTime = null)
-                    schedule(meeting, initialCalendar = null)
-                } else {
-                    schedule(meeting, calendar)
-                }
-            },
-            onError = { schedule(meeting, initialCalendar = null) }
-        )
+            if (isTimeOverdue) {
+                MeetingsUtil.updateNextMeetingTime(meeting.name, nextTime = null)
+                schedule(meeting, initialCalendar = null)
+            } else {
+                schedule(meeting, parsedCalendar)
+            }
+        } else {
+            schedule(meeting, initialCalendar = null)
+        }
     }
 
     fun reschedule(meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
