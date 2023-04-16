@@ -2,6 +2,7 @@ package latecomer
 
 import com.google.gson.GsonBuilder
 import config.FilesConfig
+import core.SealedTypeAdapterFactory
 import extension.CalendarPattern
 import extension.getGregorianCalendar
 import extension.parseStringDate
@@ -19,14 +20,13 @@ object MeetingsUtil {
     private val lock = Any()
 
     private val adapter = GsonBuilder()
-        .setPrettyPrinting()
         .registerTypeAdapterFactory(SealedTypeAdapterFactory.of(AvailableDays::class))
+        .setPrettyPrinting()
         .create()
-        .getAdapter(MeetingsConfigObject::class.java)
 
     fun provideGuildObjectByGuildId(guildId: String): GuildObject? {
         val meetingsData = meetingConfigFile.synchronizedReadText(lock)
-        return adapter.fromJson(meetingsData).guilds[guildId]
+        return adapter.fromJson(meetingsData, MeetingsConfigObject::class.java).guilds[guildId]
     }
 
     fun provideMeetingByName(guildId: String, meetingName: String): MeetingObject? {
@@ -35,12 +35,12 @@ object MeetingsUtil {
 
     fun provideMeetingsByGuildId(guildId: String): List<MeetingObject> {
         val meetingsData = meetingConfigFile.synchronizedReadText(lock)
-        return adapter.fromJson(meetingsData).guilds[guildId]?.meetings ?: emptyList()
+        return adapter.fromJson(meetingsData, MeetingsConfigObject::class.java).guilds[guildId]?.meetings ?: emptyList()
     }
 
     fun provideGuilds(): Map<String, GuildObject> {
         val meetingsData = meetingConfigFile.synchronizedReadText(lock)
-        return adapter.fromJson(meetingsData).guilds
+        return adapter.fromJson(meetingsData, MeetingsConfigObject::class.java).guilds
     }
 
     fun updateNextMeetingTime(guildId: String, meetingName: String, nextTime: String? = null) {
