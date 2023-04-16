@@ -22,9 +22,9 @@ object Logger {
         log("Finishing ${BotConfigs.VERSION}")
     }
 
-    fun logMeetingScheduled(meetingCalendar: Calendar, meetingName: String) {
+    fun logMeetingScheduled(guildName: String, meetingCalendar: Calendar, meetingName: String) {
         val meetingTime = formatter.format(meetingCalendar.time)
-        val message = "Next $meetingName meeting scheduled for $meetingTime"
+        val message = "Next $meetingName meeting scheduled for $meetingTime in $guildName"
         log(message)
     }
 

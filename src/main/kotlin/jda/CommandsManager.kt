@@ -98,7 +98,7 @@ class CommandsManager : ListenerAdapter() {
             val isTimeOverdue = nowCalendar > parsedCalendar
 
             if (isTimeOverdue.not()) {
-                TaskScheduler.reschedule(meetingOption, parsedCalendar, dateOption)
+                TaskScheduler.reschedule(event.guild?.id.orEmpty(), meetingOption, parsedCalendar, dateOption)
                 val format = createSimpleDateFormat(CalendarPattern.COMMON)
                 val formattedTime = format.format(parsedCalendar.time)
                 event.fastReplay("$meetingOption rescheduled for $formattedTime")
@@ -113,8 +113,8 @@ class CommandsManager : ListenerAdapter() {
     private fun onLatecomeCommand(event: SlashCommandInteractionEvent) {
         val meetingOption = event.getOption(CommandOption.MEETING_NAME.optionName)?.asString.orEmpty()
         val warnedMemberId = event.member?.id.orEmpty()
-        MeetingsUtil.updateWarnedMembersList(meetingOption, warnedMemberId)
-        TaskScheduler.reschedule(meetingOption)
+        MeetingsUtil.updateWarnedMembersList(event.guild?.id.orEmpty(), meetingOption, warnedMemberId)
+        TaskScheduler.reschedule(event.guild?.id.orEmpty(), meetingOption)
         event.fastReplay("${event.member?.effectiveName} will be late for the $meetingOption")
     }
 
@@ -123,8 +123,8 @@ class CommandsManager : ListenerAdapter() {
         val dateEndOption = event.getOption(CommandOption.ABSENCE_END_DATE.optionName)?.asString
         val memberOption = event.getOption(CommandOption.MEMBER.optionName)?.asMember ?: event.member
 
-        MeetingsUtil.updateAbsenceMember(memberOption?.id.orEmpty(), dateStartOption, dateEndOption)
-        TaskScheduler.scheduleAll(MeetingsUtil.provideMeetings())
+        MeetingsUtil.updateAbsenceMember(event.guild?.id.orEmpty(), memberOption?.id.orEmpty(), dateStartOption, dateEndOption)
+        TaskScheduler.scheduleAll(event.guild?.id.orEmpty(), MeetingsUtil.provideMeetingsByGuildId(event.guild?.id.orEmpty()))
         event.fastReplay("Absence: $dateStartOption${
             if (dateEndOption != null) {
                 "-$dateEndOption"
@@ -137,7 +137,7 @@ class CommandsManager : ListenerAdapter() {
     private fun registerCommands(event: GenericGuildEvent) {
         val meetingNamesOptionData = makeOptionData(
             commandOption = CommandOption.MEETING_NAME,
-            choices = MeetingsUtil.provideMeetings().map { it.name }
+            choices = MeetingsUtil.provideMeetingsByGuildId(event.guild.id).map { it.name }
         )
         val commandData = listOf(
             Commands.slash(Command.MAIN.commandName, Command.MAIN.commandDescription)

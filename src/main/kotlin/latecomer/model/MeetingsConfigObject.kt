@@ -1,6 +1,10 @@
 package latecomer.model
 
 data class MeetingsConfigObject(
+    val guilds: Map<String, GuildObject>,
+)
+
+data class GuildObject(
     val meetings: List<MeetingObject>,
     val absence: AbsenceObject? = null
 )
@@ -10,7 +14,7 @@ data class MeetingObject(
     val availableDays: AvailableDays,
     val verifiableVoiceChannel: Long,
     val reportingTextChannel: Long,
-    val nearestMeetingTime: String? = null,
+    val nearestDelayedMeetingTime: String? = null,
     val verifiableRoleId: String,
     val warnedMembersIds: List<String> = listOf()
 )

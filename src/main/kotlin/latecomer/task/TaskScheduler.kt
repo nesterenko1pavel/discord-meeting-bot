@@ -4,6 +4,7 @@ import extension.getGregorianCalendar
 import extension.parseStringDate
 import extension.setupForNearestMeetingDay
 import latecomer.MeetingsUtil
+import latecomer.model.GuildObject
 import latecomer.model.MeetingObject
 import logging.Logger
 import net.dv8tion.jda.api.JDA
@@ -20,57 +21,65 @@ object TaskScheduler {
         TaskScheduler.bot = bot
     }
 
-    fun scheduleAll(meetings: List<MeetingObject>) {
-        meetings.forEach { schedule(it) }
+    fun scheduleAllGuildsMeetings(guilds: Map<String, GuildObject>) {
+        guilds.forEach { guild ->
+            scheduleAll(guild.key, guild.value.meetings)
+        }
     }
 
-    fun schedule(meeting: MeetingObject) {
-        val parsedCalendar = meeting.nearestMeetingTime?.let { parseStringDate(it) }
+    fun scheduleAll(guildId: String, meetings: List<MeetingObject>) {
+        meetings.forEach { schedule(guildId, it) }
+    }
+
+    fun schedule(guildId: String, meeting: MeetingObject) {
+        val parsedCalendar = meeting.nearestDelayedMeetingTime?.let { parseStringDate(it) }
         if (parsedCalendar != null) {
             val nowCalendar = getGregorianCalendar()
             val isTimeOverdue = nowCalendar >= parsedCalendar
 
             if (isTimeOverdue) {
-                MeetingsUtil.updateNextMeetingTime(meeting.name, nextTime = null)
-                schedule(meeting, initialCalendar = null)
+                MeetingsUtil.updateNextMeetingTime(guildId, meeting.name, nextTime = null)
+                schedule(guildId, meeting, initialCalendar = null)
             } else {
-                schedule(meeting, parsedCalendar)
+                schedule(guildId, meeting, parsedCalendar)
             }
         } else {
-            schedule(meeting, initialCalendar = null)
+            schedule(guildId, meeting, initialCalendar = null)
         }
     }
 
-    fun reschedule(meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
-        MeetingsUtil.provideMeetingByName(meetingName)?.let { meeting ->
-            schedule(meeting, initialCalendar)
-            MeetingsUtil.updateNextMeetingTime(meetingName, meetingStringDate)
+    fun reschedule(guildId: String, meetingName: String, initialCalendar: Calendar, meetingStringDate: String) {
+        MeetingsUtil.provideMeetingByName(guildId, meetingName)?.let { meeting ->
+            schedule(guildId, meeting, initialCalendar)
+            MeetingsUtil.updateNextMeetingTime(guildId, meetingName, meetingStringDate)
         }
     }
 
-    fun reschedule(meetingName: String) {
-        MeetingsUtil.provideMeetingByName(meetingName)?.let { meetingObject ->
-            schedule(meetingObject)
+    fun reschedule(guildId: String, meetingName: String) {
+        MeetingsUtil.provideMeetingByName(guildId, meetingName)?.let { meetingObject ->
+            schedule(guildId, meetingObject)
         }
     }
 
-    private fun schedule(meetingObject: MeetingObject, initialCalendar: Calendar?) {
-        val actualMeetingObject = MeetingsUtil.provideMeetingByName(meetingObject.name) ?: return
+    private fun schedule(guildId: String, meetingObject: MeetingObject, initialCalendar: Calendar?) {
+        val actualMeetingObject = MeetingsUtil.provideMeetingByName(guildId, meetingObject.name) ?: return
 
-        val reportingTextChannel = bot.getTextChannelById(actualMeetingObject.reportingTextChannel) ?: return
-        val verifiableVoiceChannel = bot.getVoiceChannelById(actualMeetingObject.verifiableVoiceChannel) ?: return
-        val verifiableRole = bot.roles.firstOrNull { role -> role.id == actualMeetingObject.verifiableRoleId } ?: return
+        val currentGuild = bot.getGuildById(guildId) ?: return
+
+        val reportingTextChannel = currentGuild.getTextChannelById(actualMeetingObject.reportingTextChannel) ?: return
+        val verifiableVoiceChannel = currentGuild.getVoiceChannelById(actualMeetingObject.verifiableVoiceChannel) ?: return
+        val verifiableRole = currentGuild.roles.firstOrNull { role -> role.id == actualMeetingObject.verifiableRoleId } ?: return
 
         val calendar = initialCalendar
             ?: getGregorianCalendar().apply {
                 setupForNearestMeetingDay(actualMeetingObject.availableDays)
             }
         val universalTimerTask = UniversalTimerTask(
-            reportingTextChannel, verifiableVoiceChannel, verifiableRole, actualMeetingObject
+            guildId, reportingTextChannel, verifiableVoiceChannel, verifiableRole, actualMeetingObject
         )
 
         timer.schedule(universalTimerTask, calendar.time)
-        Logger.logMeetingScheduled(calendar, actualMeetingObject.name)
+        Logger.logMeetingScheduled(currentGuild.name, calendar, actualMeetingObject.name)
         TaskManager.putTask(actualMeetingObject.name, universalTimerTask)
     }
 }

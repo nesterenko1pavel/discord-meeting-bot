@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 
 class UniversalTimerTask(
+    private val guildId: String,
     private val reportingTextChannel: TextChannel,
     private val verifiableVoiceChannel: VoiceChannel,
     private val verifiableRole: Role,
@@ -15,9 +16,9 @@ class UniversalTimerTask(
 ) : BaseTimerTask() {
 
     override fun scheduleNext() {
-        MeetingsUtil.deleteWarnedMembersIds(meetingObject.name)
-        MeetingsUtil.updateAbsenceObject()
-        TaskScheduler.schedule(meetingObject)
+        MeetingsUtil.deleteWarnedMembersIds(guildId, meetingObject.name)
+        MeetingsUtil.updateAbsenceObject(guildId)
+        TaskScheduler.schedule(guildId, meetingObject)
     }
 
     override fun onRunTask() {
@@ -26,6 +27,7 @@ class UniversalTimerTask(
         }
 
         LatecomerUtil.verifyLatecomers(
+            guildId = guildId,
             membersInVerifiableChannel = verifiableVoiceChannel.members,
             membersForVerification = membersForVerification,
             warnedMembersIds = meetingObject.warnedMembersIds

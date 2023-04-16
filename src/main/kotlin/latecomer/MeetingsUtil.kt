@@ -8,6 +8,7 @@ import extension.parseStringDate
 import latecomer.model.AbsenceMemberObject
 import latecomer.model.AbsenceObject
 import latecomer.model.AvailableDays
+import latecomer.model.GuildObject
 import latecomer.model.MeetingObject
 import latecomer.model.MeetingsConfigObject
 import java.io.File
@@ -15,6 +16,7 @@ import java.io.File
 object MeetingsUtil {
 
     private val meetingConfigFile = File(FilesConfig.MEETINGS_CONFIG)
+    private val lock = Any()
 
     private val adapter = GsonBuilder()
         .setPrettyPrinting()
@@ -22,34 +24,46 @@ object MeetingsUtil {
         .create()
         .getAdapter(MeetingsConfigObject::class.java)
 
-    fun provideMeetingsObject(): MeetingsConfigObject? {
-        val meetingsData = meetingConfigFile.readText()
-        return adapter.fromJson(meetingsData)
+    fun provideGuildObjectByGuildId(guildId: String): GuildObject? {
+        val meetingsData = meetingConfigFile.synchronizedReadText(lock)
+        return adapter.fromJson(meetingsData).guilds[guildId]
     }
 
-    fun provideMeetingByName(meetingName: String): MeetingObject? {
-        return provideMeetings().find { it.name == meetingName }
+    fun provideMeetingByName(guildId: String, meetingName: String): MeetingObject? {
+        return provideMeetingsByGuildId(guildId).find { it.name == meetingName }
     }
 
-    fun provideMeetings(): List<MeetingObject> {
-        val meetingsData = meetingConfigFile.readText()
-        return adapter.fromJson(meetingsData)?.meetings ?: emptyList()
+    fun provideMeetingsByGuildId(guildId: String): List<MeetingObject> {
+        val meetingsData = meetingConfigFile.synchronizedReadText(lock)
+        return adapter.fromJson(meetingsData).guilds[guildId]?.meetings ?: emptyList()
     }
 
-    fun updateNextMeetingTime(meetingName: String, nextTime: String? = null) {
-        val (meetings, changingMeeting) = excludeMeeting(meetingName)
+    fun provideGuilds(): Map<String, GuildObject> {
+        val meetingsData = meetingConfigFile.synchronizedReadText(lock)
+        return adapter.fromJson(meetingsData).guilds
+    }
+
+    fun updateNextMeetingTime(guildId: String, meetingName: String, nextTime: String? = null) {
+        val (meetings, changingMeeting) = excludeMeeting(guildId, meetingName)
 
         changingMeeting?.let { meeting ->
-            val newMeeting = meeting.copy(nearestMeetingTime = nextTime)
+            val newMeeting = meeting.copy(nearestDelayedMeetingTime = nextTime)
             meetings.add(newMeeting)
 
-            val json = adapter.toJson(MeetingsConfigObject(meetings))
-            meetingConfigFile.writeText(json)
+            val guilds = provideGuilds()
+            val currentGuild = guilds[guildId]
+
+            val mutableGuilds = mutableMapOf<String, GuildObject>()
+            mutableGuilds.putAll(guilds)
+            mutableGuilds[guildId] = GuildObject(meetings, currentGuild?.absence)
+
+            val json = adapter.toJson(MeetingsConfigObject(mutableGuilds))
+            meetingConfigFile.synchronizedWriteText(lock, json)
         }
     }
 
-    fun updateWarnedMembersList(meetingName: String, warnedMemberId: String) {
-        val (meetings, changingMeeting) = excludeMeeting(meetingName)
+    fun updateWarnedMembersList(guildId: String, meetingName: String, warnedMemberId: String) {
+        val (meetings, changingMeeting) = excludeMeeting(guildId, meetingName)
 
         changingMeeting?.let { meeting ->
 
@@ -61,24 +75,41 @@ object MeetingsUtil {
 
                 val newMeeting = meeting.copy(warnedMembersIds = newWarnedMembersIds)
                 meetings.add(newMeeting)
-                writeMeetingsObjectToFile(meetings)
+
+                val guilds = provideGuilds()
+                val currentGuild = guilds[guildId]
+
+                val mutableGuilds = mutableMapOf<String, GuildObject>()
+                mutableGuilds.putAll(guilds)
+                mutableGuilds[guildId] = GuildObject(meetings, currentGuild?.absence)
+
+                val json = adapter.toJson(MeetingsConfigObject(mutableGuilds))
+                meetingConfigFile.synchronizedWriteText(lock, json)
             }
         }
     }
 
-    fun deleteWarnedMembersIds(meetingName: String) {
-        val (meetings, changingMeeting) = excludeMeeting(meetingName)
+    fun deleteWarnedMembersIds(guildId: String, meetingName: String) {
+        val (meetings, changingMeeting) = excludeMeeting(guildId, meetingName)
 
         changingMeeting?.let { meeting ->
             val newMeeting = meeting.copy(warnedMembersIds = listOf())
             meetings.add(newMeeting)
 
-            writeMeetingsObjectToFile(meetings)
+            val guilds = provideGuilds()
+            val currentGuild = guilds[guildId]
+
+            val mutableGuilds = mutableMapOf<String, GuildObject>()
+            mutableGuilds.putAll(guilds)
+            mutableGuilds[guildId] = GuildObject(meetings, currentGuild?.absence)
+
+            val json = adapter.toJson(MeetingsConfigObject(mutableGuilds))
+            meetingConfigFile.synchronizedWriteText(lock, json)
         }
     }
 
-    private fun excludeMeeting(meetingName: String): Pair<MutableList<MeetingObject>, MeetingObject?> {
-        val currentMeetings = provideMeetings()
+    private fun excludeMeeting(guildId: String, meetingName: String): Pair<MutableList<MeetingObject>, MeetingObject?> {
+        val currentMeetings = provideMeetingsByGuildId(guildId)
 
         val meetings = mutableListOf<MeetingObject>()
 
@@ -88,27 +119,29 @@ object MeetingsUtil {
         return meetings to currentMeetings.find { it.name == meetingName }
     }
 
-    private fun writeMeetingsObjectToFile(meetings: List<MeetingObject>) {
-        val json = adapter.toJson(MeetingsConfigObject(meetings, provideMeetingsObject()?.absence))
-        meetingConfigFile.writeText(json)
-    }
-
-    fun updateAbsenceMember(memberId: String, dateStartOption: String, dateEndOption: String?) {
-        val meetingsObject = provideMeetingsObject() ?: return
+    fun updateAbsenceMember(guildId: String, memberId: String, dateStartOption: String, dateEndOption: String?) {
+        val meetingsObject = provideGuildObjectByGuildId(guildId) ?: return
 
         val newAbsenceMemberObjectList = mutableListOf<AbsenceMemberObject>()
         meetingsObject.absence?.let { newAbsenceMemberObjectList.addAll(it.absenceMembersList) }
 
         newAbsenceMemberObjectList.add(AbsenceMemberObject(memberId, dateStartOption, dateEndOption))
 
-        val json = adapter.toJson(MeetingsConfigObject(meetingsObject.meetings, AbsenceObject(newAbsenceMemberObjectList)))
-        meetingConfigFile.writeText(json)
+        val guilds = provideGuilds()
+        val currentGuild = guilds[guildId]
+
+        val mutableGuilds = mutableMapOf<String, GuildObject>()
+        mutableGuilds.putAll(guilds)
+        mutableGuilds[guildId] = GuildObject(currentGuild?.meetings ?: emptyList(), AbsenceObject(newAbsenceMemberObjectList))
+
+        val json = adapter.toJson(MeetingsConfigObject(mutableGuilds))
+        meetingConfigFile.synchronizedWriteText(lock, json)
     }
 
-    fun updateAbsenceObject() {
+    fun updateAbsenceObject(guildId: String) {
         val currentCalendar = getGregorianCalendar()
 
-        val absenceObject = provideMeetingsObject()?.absence ?: return
+        val absenceObject = provideGuildObjectByGuildId(guildId)?.absence ?: return
 
         val newAbsenceMemberObjectList = mutableListOf<AbsenceMemberObject>()
 
@@ -122,7 +155,26 @@ object MeetingsUtil {
             }
         }
 
-        val json = adapter.toJson(MeetingsConfigObject(provideMeetings(), AbsenceObject(newAbsenceMemberObjectList)))
-        meetingConfigFile.writeText(json)
+        val guilds = provideGuilds()
+        val currentGuild = guilds[guildId]
+
+        val mutableGuilds = mutableMapOf<String, GuildObject>()
+        mutableGuilds.putAll(guilds)
+        mutableGuilds[guildId] = GuildObject(currentGuild?.meetings ?: emptyList(), AbsenceObject(newAbsenceMemberObjectList))
+
+        val json = adapter.toJson(MeetingsConfigObject(mutableGuilds))
+        meetingConfigFile.synchronizedWriteText(lock, json)
+    }
+}
+
+private fun File.synchronizedReadText(lock: Any): String {
+    return synchronized(lock) {
+        readText()
+    }
+}
+
+private fun File.synchronizedWriteText(lock: Any, text: String) {
+    synchronized(lock) {
+        writeText(text)
     }
 }

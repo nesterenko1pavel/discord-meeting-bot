@@ -21,5 +21,5 @@ fun main() {
 
     TaskScheduler.init(bot)
 
-    TaskScheduler.scheduleAll(MeetingsUtil.provideMeetings())
+    TaskScheduler.scheduleAllGuildsMeetings(MeetingsUtil.provideGuilds())
 }

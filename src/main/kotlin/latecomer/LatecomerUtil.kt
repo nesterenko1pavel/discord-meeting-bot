@@ -32,13 +32,14 @@ object LatecomerUtil {
     }
 
     fun verifyLatecomers(
+        guildId: String,
         membersInVerifiableChannel: List<Member>,
         membersForVerification: List<Member>,
         warnedMembersIds: List<String>,
         shouldSaveStats: Boolean = true,
         onNotEmptyLatecomers: (String) -> Unit
     ) {
-        val latecomers = getLatecomers(membersInVerifiableChannel, membersForVerification, warnedMembersIds)
+        val latecomers = getLatecomers(guildId, membersInVerifiableChannel, membersForVerification, warnedMembersIds)
 
         val reportMessage = if (latecomers.isNotEmpty()) {
             val latecomersMessage = StringBuilder()
@@ -64,11 +65,12 @@ object LatecomerUtil {
     }
 
     private fun getLatecomers(
+        guildId: String,
         membersInVerifiableChannel: List<Member>,
         membersForVerification: List<Member>,
         warnedMembersIds: List<String>
     ): List<Member> {
-        val absenceObject = MeetingsUtil.provideMeetingsObject()?.absence
+        val absenceObject = MeetingsUtil.provideGuildObjectByGuildId(guildId)?.absence
 
         return membersForVerification.filterNot { member ->
 
@@ -79,9 +81,9 @@ object LatecomerUtil {
                 val dateEnd = absenceMember.dataEnd?.let { parseStringDate(it, CalendarPattern.SHORT) }
 
                 if (dateEnd == null && dateStart != null) {
-                    currentCalendar.get(Calendar.DAY_OF_MONTH) == dateStart.get(Calendar.DAY_OF_MONTH)
-                            && currentCalendar.get(Calendar.MONTH) == dateStart.get(Calendar.MONTH)
-                            && currentCalendar.get(Calendar.YEAR) == dateStart.get(Calendar.YEAR)
+                    currentCalendar.get(Calendar.DAY_OF_MONTH) == dateStart.get(Calendar.DAY_OF_MONTH) &&
+                    currentCalendar.get(Calendar.MONTH) == dateStart.get(Calendar.MONTH) &&
+                    currentCalendar.get(Calendar.YEAR) == dateStart.get(Calendar.YEAR)
                 } else if (dateEnd != null && dateStart != null) {
                     currentCalendar >= dateStart && currentCalendar <= dateEnd
                 } else {
