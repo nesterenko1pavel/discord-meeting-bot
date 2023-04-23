@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
+import org.brunocvcunha.jiphy.Jiphy
+import org.brunocvcunha.jiphy.requests.JiphySearchRequest
 
 private enum class Command(
     val commandName: String,
@@ -32,9 +34,10 @@ private enum class SubCommand(
 ) {
     HEY("hey", "Get welcome by bot"),
     STATS("stats", "Latecomer's stats"),
-    RESCHEDULE("reschedule", "Rescheduling nearest meeting"),
+    RESCHEDULE_NEAREST("reschedule-nearest", "Rescheduling nearest meeting"),
     LATECOME("latecome", "Notify bot when you're late"),
-    ABSENCE("absence", "Warn the bot about the absence")
+    ABSENCE("absence", "Warn the bot about the absence"),
+    GIF("gif", "Ask bot to send GIF")
 }
 
 private enum class CommandOption(
@@ -45,20 +48,23 @@ private enum class CommandOption(
     MEETING_DATE("date", "Rescheduled meeting date with pattern \'dd-MM-yyyy HH:mm\'"),
     ABSENCE_START_DATE("date-start", "Enter first or only date of absence with patter \'dd-MM-yyyy\'"),
     ABSENCE_END_DATE("date-end", "Enter last date of absence with patter \'dd-MM-yyyy\'"),
-    MEMBER("member", "Enter the member for which the command applies. By default applies to you")
-
+    MEMBER("member", "Enter the member for which the command applies. By default applies to you"),
+    GIF_NAME("gif-name", "Enter name of the gif you want to see")
 }
 
-class CommandsManager : ListenerAdapter() {
+class CommandsManager(
+    private val jiphy: Jiphy
+) : ListenerAdapter() {
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         if (event.name == Command.MAIN.commandName) {
             when (event.subcommandName) {
                 SubCommand.HEY.commandName -> onInfoCommand(event)
                 SubCommand.STATS.commandName -> onStatsCommand(event)
-                SubCommand.RESCHEDULE.commandName -> onRescheduleCommand(event)
+                SubCommand.RESCHEDULE_NEAREST.commandName -> onRescheduleCommand(event)
                 SubCommand.LATECOME.commandName -> onLatecomeCommand(event)
                 SubCommand.ABSENCE.commandName -> onAbsenceCommand(event)
+                SubCommand.GIF.commandName -> onGifCommand(event)
             }
         }
     }
@@ -134,6 +140,13 @@ class CommandsManager : ListenerAdapter() {
         } for ${memberOption?.effectiveName}")
     }
 
+    private fun onGifCommand(event: SlashCommandInteractionEvent) {
+        val gifName = event.getOption(CommandOption.GIF_NAME.optionName)?.asString.orEmpty()
+        val actualGifName = gifName.replace(" ", "")
+        val entities = jiphy.sendRequest(JiphySearchRequest(actualGifName))
+        event.fastReplay(entities.data.random().url)
+    }
+
     private fun registerCommands(event: GenericGuildEvent) {
         val meetingNamesOptionData = makeOptionData(
             commandOption = CommandOption.MEETING_NAME,
@@ -144,7 +157,7 @@ class CommandsManager : ListenerAdapter() {
                 .addSubcommands(SubCommand.HEY)
                 .addSubcommands(SubCommand.STATS)
                 .addSubcommands(
-                    subcommand = SubCommand.RESCHEDULE,
+                    subcommand = SubCommand.RESCHEDULE_NEAREST,
                     options = listOf(
                         meetingNamesOptionData,
                         makeOptionData(CommandOption.MEETING_DATE)
@@ -161,6 +174,10 @@ class CommandsManager : ListenerAdapter() {
                         makeOptionData(CommandOption.ABSENCE_END_DATE, isRequired = false),
                         makeOptionData(CommandOption.MEMBER, type = OptionType.USER, isRequired = false)
                     )
+                )
+                .addSubcommands(
+                    subcommand = SubCommand.GIF,
+                    options = listOf(makeOptionData(CommandOption.GIF_NAME))
                 )
         )
         event.guild.updateCommands().addCommands(commandData).queue()

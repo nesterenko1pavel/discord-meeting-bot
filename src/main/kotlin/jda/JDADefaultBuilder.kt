@@ -6,22 +6,27 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
+import org.brunocvcunha.jiphy.Jiphy
 
 class JDADefaultBuilder {
 
-    companion object {
+    private lateinit var jiphy: Jiphy
 
-        fun build(token: String): JDA {
-            return JDABuilder.createDefault(token)
-                .setActivity(Activity.playing("IntelliJ IDEA"))
+    fun addJiphy(jiphy: Jiphy): JDADefaultBuilder {
+        this.jiphy = jiphy
+        return this
+    }
 
-                .enableIntents(GatewayIntent.GUILD_MEMBERS)
-                .setChunkingFilter(ChunkingFilter.ALL)
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
+    fun build(token: String): JDA {
+        return JDABuilder.createDefault(token)
+            .setActivity(Activity.playing("IntelliJ IDEA"))
 
-                .addEventListeners(CommandsManager())
+            .enableIntents(GatewayIntent.GUILD_MEMBERS)
+            .setChunkingFilter(ChunkingFilter.ALL)
+            .setMemberCachePolicy(MemberCachePolicy.ALL)
 
-                .build()
-        }
+            .addEventListeners(CommandsManager(jiphy))
+
+            .build()
     }
 }
